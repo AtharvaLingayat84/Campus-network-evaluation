@@ -1,0 +1,44 @@
+Router(config)#int gig0/0.90
+Router(config-subif)#
+%LINK-3-UPDOWN: Interface GigabitEthernet0/0.90, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0.90, changed state to up
+
+Router(config-subif)#encapsulation dot1Q 90
+Router(config-subif)#ip address 192.168.9.1 255.255.255.0
+Router(config-subif)#
+Router(config-subif)#ex
+Router(config)#int gig0/0.100
+Router(config-subif)#
+%LINK-3-UPDOWN: Interface GigabitEthernet0/0.100, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0.100, changed state to up
+
+Router(config-subif)#encapsulation dot1Q 100
+Router(config-subif)#ip address 192.168.10.1 255.255.255.0
+Router(config-subif)#
+Router(config-subif)#ex
+Router(config)#do wr
+Building configuration...
+[OK]
+Router(config)#
+
+
+Router>en
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#service dhcp
+Router(config)#ip dhcp pool Staff-pool
+Router(dhcp-config)#network 192.168.9.0 255.255.255.0
+Router(dhcp-config)#default-router 192.168.9.1
+Router(dhcp-config)#dns-server 192.168.9.1
+Router(dhcp-config)#ex
+Router(config)#do wr
+Building configuration...
+[OK]
+Router(config)#ip dhcp pool Studlb-pool
+Router(dhcp-config)#network 192.168.10.0 255.255.255.0
+Router(dhcp-config)#default-router 192.168.10.1
+Router(dhcp-config)#dns-server 192.168.10.1
+Router(dhcp-config)#ex
+Router(config)#do wr
