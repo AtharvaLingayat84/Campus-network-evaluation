@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2026-03-10">
+    <creator>NetworkX 3.6.1</creator>
+  </meta>
+  <graph defaultedgetype="undirected" mode="static" name="">
+    <attributes mode="static" class="node">
+      <attribute id="0" title="type" type="string" />
+    </attributes>
+    <nodes>
+      <node id="Cloud" label="Cloud">
+        <attvalues>
+          <attvalue for="0" value="cloud" />
+        </attvalues>
+      </node>
+      <node id="Email_Server" label="Email_Server">
+        <attvalues>
+          <attvalue for="0" value="server" />
+        </attvalues>
+      </node>
+      <node id="Main_Router" label="Main_Router">
+        <attvalues>
+          <attvalue for="0" value="router" />
+        </attvalues>
+      </node>
+      <node id="Main_L3_Switch" label="Main_L3_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="HR_Switch" label="HR_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="Finance_Switch" label="Finance_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="Business_Switch" label="Business_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="Student_Switch" label="Student_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="IT_Switch" label="IT_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="Server_Switch" label="Server_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="Router_Branch" label="Router_Branch">
+        <attvalues>
+          <attvalue for="0" value="router" />
+        </attvalues>
+      </node>
+      <node id="Branch_L3_Switch" label="Branch_L3_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="Branch_Switch" label="Branch_Switch">
+        <attvalues>
+          <attvalue for="0" value="switch" />
+        </attvalues>
+      </node>
+      <node id="HR_PC" label="HR_PC">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="HR_Printer" label="HR_Printer">
+        <attvalues>
+          <attvalue for="0" value="printer" />
+        </attvalues>
+      </node>
+      <node id="Finance_PC" label="Finance_PC">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="Finance_Printer" label="Finance_Printer">
+        <attvalues>
+          <attvalue for="0" value="printer" />
+        </attvalues>
+      </node>
+      <node id="Business_PC" label="Business_PC">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="Business_Printer" label="Business_Printer">
+        <attvalues>
+          <attvalue for="0" value="printer" />
+        </attvalues>
+      </node>
+      <node id="Student_PC" label="Student_PC">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="Student_Printer" label="Student_Printer">
+        <attvalues>
+          <attvalue for="0" value="printer" />
+        </attvalues>
+      </node>
+      <node id="IT_PC" label="IT_PC">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="IT_Printer" label="IT_Printer">
+        <attvalues>
+          <attvalue for="0" value="printer" />
+        </attvalues>
+      </node>
+      <node id="Web_Server" label="Web_Server">
+        <attvalues>
+          <attvalue for="0" value="server" />
+        </attvalues>
+      </node>
+      <node id="FTP_Server" label="FTP_Server">
+        <attvalues>
+          <attvalue for="0" value="server" />
+        </attvalues>
+      </node>
+      <node id="Branch_PC1" label="Branch_PC1">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="Branch_PC2" label="Branch_PC2">
+        <attvalues>
+          <attvalue for="0" value="pc" />
+        </attvalues>
+      </node>
+      <node id="Branch_Printer" label="Branch_Printer">
+        <attvalues>
+          <attvalue for="0" value="printer" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="Cloud" target="Email_Server" id="0" />
+      <edge source="Cloud" target="Main_Router" id="1" />
+      <edge source="Main_Router" target="Main_L3_Switch" id="2" />
+      <edge source="Main_Router" target="Router_Branch" id="3" />
+      <edge source="Main_L3_Switch" target="HR_Switch" id="4" />
+      <edge source="Main_L3_Switch" target="Finance_Switch" id="5" />
+      <edge source="Main_L3_Switch" target="Business_Switch" id="6" />
+      <edge source="Main_L3_Switch" target="Student_Switch" id="7" />
+      <edge source="Main_L3_Switch" target="IT_Switch" id="8" />
+      <edge source="Main_L3_Switch" target="Server_Switch" id="9" />
+      <edge source="HR_Switch" target="HR_PC" id="10" />
+      <edge source="Finance_Switch" target="Finance_PC" id="11" />
+      <edge source="Business_Switch" target="Business_PC" id="12" />
+      <edge source="Student_Switch" target="Student_PC" id="13" />
+      <edge source="IT_Switch" target="IT_PC" id="14" />
+      <edge source="Server_Switch" target="Web_Server" id="15" />
+      <edge source="Server_Switch" target="FTP_Server" id="16" />
+      <edge source="Router_Branch" target="Branch_L3_Switch" id="17" />
+      <edge source="Branch_L3_Switch" target="Branch_Switch" id="18" />
+      <edge source="Branch_Switch" target="Branch_PC1" id="19" />
+      <edge source="Branch_Switch" target="Branch_PC2" id="20" />
+      <edge source="Branch_Switch" target="Branch_Printer" id="21" />
+      <edge source="HR_PC" target="HR_Printer" id="22" />
+      <edge source="Finance_PC" target="Finance_Printer" id="23" />
+      <edge source="Business_PC" target="Business_Printer" id="24" />
+      <edge source="Student_PC" target="Student_Printer" id="25" />
+      <edge source="IT_PC" target="IT_Printer" id="26" />
+    </edges>
+  </graph>
+</gexf>
