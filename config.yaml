@@ -1,0 +1,118 @@
+# Network Simulation Configuration
+# =============================================================================
+# This YAML file controls all configurable parameters for the campus network
+# simulation without requiring code modifications.
+# =============================================================================
+
+simulation:
+  # Simulation duration in seconds
+  duration_seconds: 60
+  
+  # Baseline packet loss probability (0.0 - 1.0)
+  # Affects all network links based on congestion
+  packet_loss_rate: 0.02
+  
+  # Maximum hop count (TTL) for IP packets
+  # Packets exceeding this limit are dropped with "TTL Exceeded" reason
+  max_ttl: 64
+  
+  # Random seed for reproducibility (optional, comment out for random)
+  random_seed: 42
+
+network:
+  # Main Campus Configuration (Primary site)
+  main_campus:
+    floors: 8
+    devices_per_floor: 12
+    vlan_range: [101, 108]
+  
+  # Campus 2 Configuration (Secondary site)
+  campus2:
+    floors: 4
+    devices_per_floor: 12
+    vlan_range: [201, 204]
+  
+  # Server Configuration
+  servers:
+    vlan: 128
+    server_count: 3  # Exam Server, Email Server, Cloud Server
+
+# Link Bandwidth Tiers (in Mbps)
+# These determine link capacity and congestion-based packet loss
+bandwidth:
+  wan_link_mbps: 10000      # Internet WAN uplink
+  core_link_mbps: 8000       # Core-to-distribution infrastructure
+  distribution_link_mbps: 4000  # Distribution-to-access layer
+  access_link_mbps: 1000     # Access layer (floor switches)
+  end_device_mbps: 100       # End devices (PCs, printers, APs)
+
+# Traffic Configuration
+traffic:
+  # Packet generation interval in milliseconds (min, max range)
+  packet_generation_interval_ms: [100, 500]
+  
+  # Traffic weight distribution (must sum to 1.0)
+  # These weights determine where packets are destined in normal mode
+  traffic_weights:
+    exam_server: 0.40        # 40% of packets to Exam Server
+    email_server: 0.20       # 20% of packets to Email Server
+    cloud_server: 0.10       # 10% of packets to Cloud Server
+    internet: 0.10           # 10% of packets to Internet gateway
+    peer_to_peer: 0.20       # 20% of packets between P2P devices
+
+# Routing Configuration
+routing:
+  # Routing algorithm to use
+  # Options: "dijkstra" (shortest path)
+  algorithm: "dijkstra"
+  
+  # Path selection strategy
+  # Options: "shortest" (minimum hops)
+  path_selection: "shortest"
+
+# Visualization Configuration
+visualization:
+  # Whether to display plots (True/False)
+  show_plots: true
+  
+  # Output formats for charts
+  # Options: "png", "svg", "pdf"
+  save_formats:
+    - "png"
+  
+  # DPI (dots per inch) for saved images
+  # Higher DPI = larger file size, better quality
+  dpi: 300
+
+# Output Configuration
+output:
+  # Output directory for generated files
+  output_directory: "./output"
+  
+  # Export options
+  export_csv: true              # Export packet-level data to CSV
+  export_json: true             # Export summary metrics to JSON
+  export_pickle: false          # Export full data structures (for re-analysis)
+  
+  # Report generation
+  generate_text_report: true    # Generate human-readable evaluation report
+  generate_comparison: true     # Generate normal vs. exam mode comparison
+
+# Advanced Configuration (Optional)
+# Uncomment and modify as needed for tuning
+
+# exam_mode:
+#   # Exam mode restrictions - only allow traffic to these destinations
+#   allowed_destinations:
+#     - "Exam Server"
+#     - "Email Server"
+#   # Whether ACL blocks or logs blocked packets
+#   acl_action: "drop"  # or "log"
+
+# logging:
+#   # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+#   level: "DEBUG"
+#   # Log file location
+#   file: "network_simulation.log"
+#   # Whether to also log to console
+#   console: true

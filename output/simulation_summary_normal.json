@@ -1,0 +1,175 @@
+{
+  "timestamp": "2026-04-08T21:40:27.688635",
+  "summary": {
+    "total_packets": 429,
+    "delivered_packets": 393,
+    "dropped_packets": 36,
+    "delivery_rate": 91.6083916083916,
+    "avg_delay_ms": 5.010444126931115,
+    "avg_hops": 4.407925407925408,
+    "max_delay_ms": 9.635445314447278,
+    "min_delay_ms": 1.3391128581256755
+  },
+  "per_vlan": {
+    "101": {
+      "packets_total": 54,
+      "packets_delivered": 50,
+      "packets_lost": 4,
+      "delivery_rate": 92.59,
+      "avg_delay_ms": 4.87,
+      "avg_hops": 4.37,
+      "loss_reasons": {
+        "none": 50,
+        "link_loss": 4
+      }
+    },
+    "102": {
+      "packets_total": 54,
+      "packets_delivered": 49,
+      "packets_lost": 5,
+      "delivery_rate": 90.74,
+      "avg_delay_ms": 4.95,
+      "avg_hops": 4.19,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 5
+      }
+    },
+    "103": {
+      "packets_total": 54,
+      "packets_delivered": 49,
+      "packets_lost": 5,
+      "delivery_rate": 90.74,
+      "avg_delay_ms": 4.97,
+      "avg_hops": 4.59,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 5
+      }
+    },
+    "104": {
+      "packets_total": 54,
+      "packets_delivered": 49,
+      "packets_lost": 5,
+      "delivery_rate": 90.74,
+      "avg_delay_ms": 4.98,
+      "avg_hops": 4.31,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 5
+      }
+    },
+    "105": {
+      "packets_total": 54,
+      "packets_delivered": 49,
+      "packets_lost": 5,
+      "delivery_rate": 90.74,
+      "avg_delay_ms": 4.85,
+      "avg_hops": 4.33,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 5
+      }
+    },
+    "106": {
+      "packets_total": 53,
+      "packets_delivered": 49,
+      "packets_lost": 4,
+      "delivery_rate": 92.45,
+      "avg_delay_ms": 5.08,
+      "avg_hops": 4.45,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 4
+      }
+    },
+    "107": {
+      "packets_total": 53,
+      "packets_delivered": 49,
+      "packets_lost": 4,
+      "delivery_rate": 92.45,
+      "avg_delay_ms": 5.14,
+      "avg_hops": 4.49,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 4
+      }
+    },
+    "108": {
+      "packets_total": 53,
+      "packets_delivered": 49,
+      "packets_lost": 4,
+      "delivery_rate": 92.45,
+      "avg_delay_ms": 5.25,
+      "avg_hops": 4.53,
+      "loss_reasons": {
+        "none": 49,
+        "link_loss": 4
+      }
+    },
+    "128": {
+      "packets_total": 429,
+      "packets_delivered": 393,
+      "packets_lost": 36,
+      "delivery_rate": 91.61,
+      "avg_delay_ms": 5.01,
+      "avg_hops": 4.41,
+      "loss_reasons": {
+        "none": 393,
+        "link_loss": 36
+      }
+    }
+  },
+  "per_device": {},
+  "per_traffic_type": {
+    "Exam Server": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    },
+    "Email Server": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    },
+    "Cloud Server": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    },
+    "Internet GW": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    }
+  },
+  "loss_breakdown": {
+    "delivered": 393,
+    "link_loss": 36,
+    "ttl_exceeded": 0,
+    "acl_blocked": 0,
+    "timeout": 0,
+    "other": 0,
+    "percentages": {
+      "delivered": 91.61,
+      "link_loss": 8.39,
+      "ttl_exceeded": 0.0,
+      "acl_blocked": 0.0,
+      "timeout": 0.0,
+      "other": 0.0
+    }
+  },
+  "hop_distribution": {
+    "2": 4,
+    "3": 9,
+    "4": 285,
+    "5": 86,
+    "6": 31,
+    "7": 12,
+    "8": 2
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-04-08T21:40:28.418841",
+  "summary": {
+    "total_packets": 430,
+    "delivered_packets": 267,
+    "dropped_packets": 163,
+    "delivery_rate": 62.093023255813954,
+    "avg_delay_ms": 3.298756902287423,
+    "avg_hops": 2.8209302325581396,
+    "max_delay_ms": 7.924831732242332,
+    "min_delay_ms": 0.0
+  },
+  "per_vlan": {
+    "101": {
+      "packets_total": 54,
+      "packets_delivered": 34,
+      "packets_lost": 20,
+      "delivery_rate": 62.96,
+      "avg_delay_ms": 3.33,
+      "avg_hops": 2.8,
+      "loss_reasons": {
+        "none": 34,
+        "acl_blocked": 17,
+        "link_loss": 3
+      }
+    },
+    "102": {
+      "packets_total": 54,
+      "packets_delivered": 34,
+      "packets_lost": 20,
+      "delivery_rate": 62.96,
+      "avg_delay_ms": 3.27,
+      "avg_hops": 2.83,
+      "loss_reasons": {
+        "none": 34,
+        "acl_blocked": 17,
+        "link_loss": 3
+      }
+    },
+    "103": {
+      "packets_total": 54,
+      "packets_delivered": 34,
+      "packets_lost": 20,
+      "delivery_rate": 62.96,
+      "avg_delay_ms": 3.32,
+      "avg_hops": 2.87,
+      "loss_reasons": {
+        "none": 34,
+        "acl_blocked": 17,
+        "link_loss": 3
+      }
+    },
+    "104": {
+      "packets_total": 54,
+      "packets_delivered": 33,
+      "packets_lost": 21,
+      "delivery_rate": 61.11,
+      "avg_delay_ms": 3.29,
+      "avg_hops": 2.81,
+      "loss_reasons": {
+        "none": 33,
+        "acl_blocked": 17,
+        "link_loss": 4
+      }
+    },
+    "105": {
+      "packets_total": 54,
+      "packets_delivered": 33,
+      "packets_lost": 21,
+      "delivery_rate": 61.11,
+      "avg_delay_ms": 3.12,
+      "avg_hops": 2.78,
+      "loss_reasons": {
+        "none": 33,
+        "acl_blocked": 18,
+        "link_loss": 3
+      }
+    },
+    "106": {
+      "packets_total": 54,
+      "packets_delivered": 33,
+      "packets_lost": 21,
+      "delivery_rate": 61.11,
+      "avg_delay_ms": 3.27,
+      "avg_hops": 2.74,
+      "loss_reasons": {
+        "none": 33,
+        "acl_blocked": 18,
+        "link_loss": 3
+      }
+    },
+    "107": {
+      "packets_total": 53,
+      "packets_delivered": 33,
+      "packets_lost": 20,
+      "delivery_rate": 62.26,
+      "avg_delay_ms": 3.33,
+      "avg_hops": 2.89,
+      "loss_reasons": {
+        "none": 33,
+        "acl_blocked": 17,
+        "link_loss": 3
+      }
+    },
+    "108": {
+      "packets_total": 53,
+      "packets_delivered": 33,
+      "packets_lost": 20,
+      "delivery_rate": 62.26,
+      "avg_delay_ms": 3.46,
+      "avg_hops": 2.85,
+      "loss_reasons": {
+        "none": 33,
+        "acl_blocked": 17,
+        "link_loss": 3
+      }
+    },
+    "128": {
+      "packets_total": 430,
+      "packets_delivered": 267,
+      "packets_lost": 163,
+      "delivery_rate": 62.09,
+      "avg_delay_ms": 3.3,
+      "avg_hops": 2.82,
+      "loss_reasons": {
+        "none": 267,
+        "acl_blocked": 138,
+        "link_loss": 25
+      }
+    }
+  },
+  "per_device": {},
+  "per_traffic_type": {
+    "Exam Server": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    },
+    "Email Server": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    },
+    "Cloud Server": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    },
+    "Internet GW": {
+      "packets": 0,
+      "delivery_rate": 0,
+      "avg_delay_ms": 0,
+      "percentage": 0
+    }
+  },
+  "loss_breakdown": {
+    "delivered": 267,
+    "link_loss": 25,
+    "ttl_exceeded": 0,
+    "acl_blocked": 138,
+    "timeout": 0,
+    "other": 0,
+    "percentages": {
+      "delivered": 62.09,
+      "link_loss": 5.81,
+      "ttl_exceeded": 0.0,
+      "acl_blocked": 32.09,
+      "timeout": 0.0,
+      "other": 0.0
+    }
+  },
+  "hop_distribution": {
+    "0": 138,
+    "2": 6,
+    "3": 7,
+    "4": 220,
+    "5": 54,
+    "6": 5
+  }
+}

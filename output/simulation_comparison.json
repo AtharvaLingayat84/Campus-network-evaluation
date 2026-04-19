@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-04-08T21:40:28.448212",
+  "normal_mode": {
+    "total_packets": 429,
+    "delivered_packets": 393,
+    "dropped_packets": 36,
+    "delivery_rate": 91.61,
+    "avg_delay_ms": 5.01,
+    "std_delay_ms": 1.21,
+    "min_delay_ms": 1.34,
+    "max_delay_ms": 9.64,
+    "avg_hops": 4.41,
+    "min_hops": 2,
+    "max_hops": 8
+  },
+  "exam_mode": {
+    "total_packets": 430,
+    "delivered_packets": 267,
+    "dropped_packets": 163,
+    "delivery_rate": 62.09,
+    "avg_delay_ms": 3.3,
+    "std_delay_ms": 2.43,
+    "min_delay_ms": 0.0,
+    "max_delay_ms": 7.92,
+    "avg_hops": 2.82,
+    "min_hops": 0,
+    "max_hops": 6
+  },
+  "deltas": {
+    "packet_volume_change_percent": 0.23,
+    "delivery_rate_change_percent": -29.519999999999996,
+    "delay_change_ms": -1.71,
+    "hop_count_change": -1.5900000000000003
+  },
+  "analysis": {
+    "summary": "Exam mode produces similar traffic volumes with similar delivery rates and reduced latency.",
+    "packet_volume": "Traffic volume similar between modes",
+    "delivery_rate": "Delivery degrades by 29.5% in exam mode - concentration on fewer servers",
+    "latency": "Latency unchanged between modes"
+  }
+}
