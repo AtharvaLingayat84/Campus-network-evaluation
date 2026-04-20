@@ -1,3 +1,27 @@
+For VLAN
+en
+conf t
+int range fa0/1-24
+switchport mode access
+switchport access vlan 90
+do wr
+
+exit
+ON other side
+en
+conf t
+int range fa0/1-24
+switchport mode access
+switchport access vlan 90
+do wr
+
+TRUNK
+blah blah
+switchport mode trunk
+exit
+do wr
+
+Router config
 Router(config)#int gig0/0.90
 Router(config-subif)#
 %LINK-3-UPDOWN: Interface GigabitEthernet0/0.90, changed state to down
@@ -6,7 +30,6 @@ Router(config-subif)#
 
 Router(config-subif)#encapsulation dot1Q 90
 Router(config-subif)#ip address 192.168.9.1 255.255.255.0
-Router(config-subif)#
 Router(config-subif)#ex
 Router(config)#int gig0/0.100
 Router(config-subif)#
@@ -16,13 +39,11 @@ Router(config-subif)#
 
 Router(config-subif)#encapsulation dot1Q 100
 Router(config-subif)#ip address 192.168.10.1 255.255.255.0
-Router(config-subif)#
 Router(config-subif)#ex
 Router(config)#do wr
 Building configuration...
 [OK]
 Router(config)#
-
 
 Router>en
 Router#conf t

@@ -44,16 +44,12 @@ logger.setLevel(logging.DEBUG)
 # File handler - full debug trace
 _fh = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
 _fh.setLevel(logging.DEBUG)
-_fh.setFormatter(logging.Formatter(
-    "%(asctime)s  %(levelname)-8s  %(message)s", datefmt="%H:%M:%S"
-))
+_fh.setFormatter(logging.Formatter("%(message)s"))
 
 # Console handler - info and above
 _ch = logging.StreamHandler()
 _ch.setLevel(logging.INFO)
-_ch.setFormatter(logging.Formatter(
-    "[%(asctime)s] %(message)s", datefmt="%H:%M:%S"
-))
+_ch.setFormatter(logging.Formatter("%(message)s"))
 
 logger.addHandler(_fh)
 logger.addHandler(_ch)
@@ -222,27 +218,27 @@ class CampusNetwork:
 
         # --- INTERNET ---
         self._add_node("INTERNET", type="internet")
-        logger.info("Node: INTERNET (external)")
+        logger.debug("Node: INTERNET (external)")
 
         # --- ISR4331 ROUTER (edge) ---
         self._add_node("ISR4331", type="router", role="edge_router")
         self._add_link("INTERNET", "ISR4331", tier="wan")
-        logger.info("Node: ISR4331 (edge router)")
+        logger.debug("Node: ISR4331 (edge router)")
 
         # --- ASA FIREWALL ---
         self._add_node("ASA_FW", type="firewall", role="firewall")
         self._add_link("ISR4331", "ASA_FW", tier="core")
-        logger.info("Node: ASA_FW (ASA firewall)")
+        logger.debug("Node: ASA_FW (ASA firewall)")
 
         # --- CORE ROUTER (router-on-a-stick) ---
         self._add_node("CORE_RTR", type="router", role="core_router")
         self._add_link("ASA_FW", "CORE_RTR", tier="core")
-        logger.info("Node: CORE_RTR (core router - router-on-a-stick)")
+        logger.debug("Node: CORE_RTR (core router - router-on-a-stick)")
 
         # --- CORE SWITCH (L3) ---
         self._add_node("CORE_SW", type="switch", role="core_switch")
         self._add_link("CORE_RTR", "CORE_SW", tier="core")
-        logger.info("Node: CORE_SW (core L3 switch)")
+        logger.debug("Node: CORE_SW (core L3 switch)")
 
         # --- SERVERS (VLAN 128) ---
         for srv_name, srv_info in self.SERVERS_INFO.items():
@@ -251,7 +247,7 @@ class CampusNetwork:
                            vlan=self.SERVER_VLAN, ip=ip,
                            server_role=srv_info["role"])
             self._add_link("CORE_SW", srv_name, tier="distribution")
-            logger.info(f"Node: {srv_name}  IP: {ip}  VLAN: {self.SERVER_VLAN}")
+            logger.debug(f"Node: {srv_name}  IP: {ip}  VLAN: {self.SERVER_VLAN}")
 
         # --- PER-CAMPUS BUILD-OUT ---
         for campus_name, campus_cfg in self.CAMPUSES.items():
@@ -264,7 +260,7 @@ class CampusNetwork:
             self._add_node(dist_name, type="switch",
                            role="distribution", campus=campus_name)
             self._add_link("CORE_SW", dist_name, tier="core")
-            logger.info(f"Node: {dist_name} (distribution switch)")
+            logger.debug(f"Node: {dist_name} (distribution switch)")
 
             for floor_idx in range(num_floors):
                 floor_num  = floor_idx + 1
@@ -276,7 +272,7 @@ class CampusNetwork:
                                role="access", vlan=vlan,
                                campus=campus_name, floor=floor_num)
                 self._add_link(dist_name, floor_sw, tier="distribution")
-                logger.info(f"  Floor switch: {floor_sw}  VLAN: {vlan}")
+                logger.debug(f"  Floor switch: {floor_sw}  VLAN: {vlan}")
 
                 # --- 8 PCs ---
                 for pc_num in range(1, 9):
@@ -324,7 +320,6 @@ class CampusNetwork:
         n_edges = self.G.number_of_edges()
         n_pcs   = sum(1 for _, d in self.G.nodes(data=True) if d["type"] == "pc")
         n_wire  = sum(1 for _, d in self.G.nodes(data=True) if d["type"] == "wireless")
-        logger.info("=" * 60)
         logger.info(f"  TOPOLOGY COMPLETE: {n_nodes} nodes, {n_edges} edges")
         logger.info(f"  PCs: {n_pcs}  Wireless: {n_wire}  "
                      f"DHCP leases: {self.stats['dhcp_assigned']}")
@@ -436,7 +431,7 @@ class CampusNetwork:
         # --- ACL check ---
         if not self._acl_check(pkt):
             self.stats["acl_blocked"] += 1
-            logger.info(f"ACL: DENIED (exam mode)  {src_ip} -> {dst_ip}")
+            logger.debug(f"ACL: DENIED (exam mode)  {src_ip} -> {dst_ip}")
             return
         logger.debug(f"ACL: ALLOWED  {src_ip} -> {dst_ip}")
 
@@ -465,7 +460,7 @@ class CampusNetwork:
             pkt.ttl -= 1
             if pkt.ttl <= 0:
                 self.stats["dropped_ttl"] += 1
-                logger.info(f"TTL EXCEEDED at hop {i+1}  {u} -> {v}")
+                logger.debug(f"TTL EXCEEDED at hop {i+1}  {u} -> {v}")
                 return
 
             # Congestion factor
@@ -477,7 +472,7 @@ class CampusNetwork:
             drop_prob = min(0.30, PACKET_LOSS_RATE * congestion)
             if random.random() < drop_prob:
                 self.stats["dropped_loss"] += 1
-                logger.info(f"PACKET LOSS at {u} -> {v}  (congestion={congestion:.2f})")
+                logger.debug(f"PACKET LOSS at {u} -> {v}  (congestion={congestion:.2f})")
                 return
 
             # Delay calculation
@@ -502,7 +497,7 @@ class CampusNetwork:
         self.hop_log.append(hops)
 
         if self.stats["delivered"] % 50 == 0:
-            logger.info(f"DELIVERED #{self.stats['delivered']}:  "
+            logger.debug(f"DELIVERED #{self.stats['delivered']}:  "
                          f"{src_name} -> {dst_name}  "
                          f"hops={hops}  delay={total_delay:.2f}ms")
 
@@ -521,7 +516,7 @@ class CampusNetwork:
         ]
         servers = list(self.SERVERS_INFO.keys())
 
-        logger.info(f"Traffic generator started: {len(clients)} clients, "
+        logger.debug(f"Traffic generator started: {len(clients)} clients, "
                      f"{len(servers)} servers")
 
         while True:
@@ -579,112 +574,6 @@ DEVICE_SHAPES = {
     "access_point":  "^",     # triangle-up
     "wireless":      "*",     # star
 }
-
-
-def visualize_topology(network: CampusNetwork,
-                       title: str = "Multi-Campus Network Topology",
-                       save_path: str = "topology_visualization.png"):
-    """
-    Draw the network topology using matplotlib.
-    Nodes are colored by device type and laid out hierarchically.
-    """
-    G = network.G
-
-    # Layout: multipartite by layer
-    layer_map = {
-        "internet":     0,
-        "router":       1,
-        "firewall":     2,
-        "switch":       3,
-        "server":       4,
-        "access_point": 5,
-        "pc":           6,
-        "printer":      6,
-        "wireless":     7,
-    }
-
-    for node, data in G.nodes(data=True):
-        ntype = data.get("type", "unknown")
-        data["subset"] = layer_map.get(ntype, 5)
-
-    try:
-        pos = nx.multipartite_layout(G, subset_key="subset", align="vertical")
-    except Exception:
-        pos = nx.spring_layout(G, k=2, iterations=80, seed=42)
-
-    # Flip so top = internet, bottom = end devices
-    for node in pos:
-        pos[node][1] = -pos[node][1]
-
-    # --- Draw edges ---
-    fig, ax = plt.subplots(figsize=(28, 20))
-    nx.draw_networkx_edges(G, pos, ax=ax,
-                           edge_color="#BDBDBD", width=0.6, alpha=0.6)
-
-    # --- Draw nodes by type ---
-    for ntype, color in DEVICE_COLORS.items():
-        nodelist = [
-            n for n, d in G.nodes(data=True)
-            if d.get("type") == ntype
-        ]
-        if not nodelist:
-            continue
-        shape = DEVICE_SHAPES.get(ntype, "o")
-        nx.draw_networkx_nodes(
-            G, pos, nodelist=nodelist, ax=ax,
-            node_color=color, node_shape=shape,
-            node_size=120 if ntype in ("pc", "wireless") else 250,
-            alpha=0.9,
-            edgecolors="white", linewidths=0.5,
-        )
-
-    # --- Labels (only for infrastructure) ---
-    label_map = {}
-    for n, d in G.nodes(data=True):
-        ntype = d.get("type", "")
-        if ntype == "internet":
-            label_map[n] = "INET"
-        elif ntype == "router" and d.get("role") == "edge_router":
-            label_map[n] = "ISR4331"
-        elif ntype == "router" and d.get("role") == "core_router":
-            label_map[n] = "CORE\nRTR"
-        elif ntype == "firewall":
-            label_map[n] = "ASA\nFW"
-        elif ntype == "switch" and d.get("role") == "core_switch":
-            label_map[n] = "CORE\nSW"
-        elif ntype == "switch" and d.get("role") == "distribution":
-            label_map[n] = n.replace("DSW_", "DIST\n")
-        elif ntype == "server":
-            label_map[n] = n.replace("_SERVER", "\nSVR")
-        elif ntype == "switch" and d.get("role") == "access":
-            label_map[n] = ""
-
-    nx.draw_networkx_labels(
-        G, pos, labels=label_map, ax=ax,
-        font_size=6, font_weight="bold", font_color="white",
-    )
-
-    # --- Legend ---
-    legend_patches = [
-        mpatches.Patch(color=c, label=t.replace("_", " ").title())
-        for t, c in DEVICE_COLORS.items()
-        if t != "unknown" and any(d.get("type") == t for _, d in G.nodes(data=True))
-    ]
-    ax.legend(handles=legend_patches, loc="upper left",
-              fontsize=9, framealpha=0.9, title="Device Types")
-
-    ax.set_title(title, fontsize=16, fontweight="bold", pad=20)
-    ax.axis("off")
-    fig.tight_layout()
-
-    os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else ".",
-                exist_ok=True)
-    fig.savefig(save_path, dpi=150, bbox_inches="tight",
-                facecolor="white", edgecolor="none")
-    logger.info(f"Topology saved to: {save_path}")
-    plt.close(fig)
-
-    return save_path
 
 
 def visualize_stats(network: CampusNetwork,
@@ -746,8 +635,6 @@ def run_simulation(mode: str = "normal", sim_time: float = SIM_TIME) -> CampusNe
     Run a full simulation in either 'normal' or 'exam' mode.
     Returns the CampusNetwork instance with results.
     """
-    logger.info("")
-    logger.info("=" * 60)
     logger.info(f"  SIMULATION START - MODE: {mode.upper()}")
     logger.info("=" * 60)
 
@@ -764,8 +651,6 @@ def run_simulation(mode: str = "normal", sim_time: float = SIM_TIME) -> CampusNe
     env.run(until=sim_time)
 
     # Print summary
-    logger.info("")
-    logger.info("-" * 60)
     logger.info(f"  RESULTS - {mode.upper()} MODE")
     logger.info("-" * 60)
     logger.info(f"  Total packets sent:    {net.stats['packets_sent']}")
@@ -798,10 +683,6 @@ def main():
     # --- Run 1: Normal Mode ---
     net_normal = run_simulation(mode="normal", sim_time=SIM_TIME)
 
-    # Visualize
-    visualize_topology(net_normal,
-                       title="Network Topology - Normal Mode",
-                       save_path="topology_normal.png")
     visualize_stats(net_normal,
                     title_suffix="(Normal Mode)",
                     save_path="stats_normal.png")
@@ -809,16 +690,11 @@ def main():
     # --- Run 2: Exam Mode ---
     net_exam = run_simulation(mode="exam", sim_time=SIM_TIME)
 
-    visualize_topology(net_exam,
-                       title="Network Topology - Exam Mode (ACL Active)",
-                       save_path="topology_exam.png")
     visualize_stats(net_exam,
                     title_suffix="(Exam Mode)",
                     save_path="stats_exam.png")
 
     # --- Comparison ---
-    logger.info("")
-    logger.info("=" * 60)
     logger.info("  COMPARISON: NORMAL vs EXAM MODE")
     logger.info("=" * 60)
     logger.info(f"  {'Metric':<25} {'Normal':>10} {'Exam':>10}")
@@ -839,10 +715,8 @@ def main():
         logger.info(f"  {'Avg delay (ms)':<25} {avg_n:>10.2f} {avg_e:>10.2f}")
     logger.info("=" * 60)
 
-    logger.info("")
     logger.info(f"Full log written to: {LOG_FILE}")
-    logger.info("Generated images: topology_normal.png, topology_exam.png, "
-                "stats_normal.png, stats_exam.png")
+    logger.info("Generated images: stats_normal.png, stats_exam.png")
     logger.info("Simulation complete.")
 
 

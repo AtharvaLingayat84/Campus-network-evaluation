@@ -90,7 +90,7 @@ output:
   output_directory: "./output"
   
   # Export options
-  export_csv: true              # Export packet-level data to CSV
+  export_csv: false             # Export packet-level data to CSV
   export_json: true             # Export summary metrics to JSON
   export_pickle: false          # Export full data structures (for re-analysis)
   

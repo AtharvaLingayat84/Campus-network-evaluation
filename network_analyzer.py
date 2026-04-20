@@ -1,251 +1,199 @@
-"""
-Network Analyzer Module
+"""Network Analyzer Module
 =======================
-Computes detailed analytics on simulation results including per-VLAN, per-device,
-and per-traffic-type breakdowns. Provides comprehensive statistical aggregation
-for reporting and visualization.
 
-Classes:
-    NetworkAnalyzer - Main class for network analysis
+Computes detailed analytics on simulation results using plain Python data
+structures. This keeps the reporting and visualization pipeline lightweight.
 """
 
-import pandas as pd
-from typing import List, Dict, Any, Optional
+from __future__ import annotations
+
 from collections import defaultdict
+from statistics import mean, pstdev
+from typing import Any, Dict, List
 
 
 class NetworkAnalyzer:
-    """
-    Performs detailed network analytics on simulation packet data.
-
-    Attributes:
-        df (pd.DataFrame): Packet-level data from simulation
-        packets (list): Original packet objects for reference
-    """
+    """Performs detailed network analytics on simulation packet data."""
 
     def __init__(self, packets: List[Any]):
-        """
-        Initialize NetworkAnalyzer with packet data.
-
-        Args:
-            packets: List of Packet objects with all attributes
-        """
         self.packets = packets
-        self.df = self._packets_to_dataframe(packets)
+        self.records = [self._packet_to_record(pkt) for pkt in packets]
 
-    def _packets_to_dataframe(self, packets: List[Any]) -> pd.DataFrame:
-        """Convert packet list to DataFrame."""
-        data = []
-        for pkt in packets:
-            data.append(
-                {
-                    "timestamp": getattr(pkt, "timestamp", 0),
-                    "src_ip": getattr(pkt, "src_ip", ""),
-                    "dst_ip": getattr(pkt, "dst_ip", ""),
-                    "src_name": getattr(pkt, "src_name", ""),
-                    "dst_name": getattr(pkt, "dst_name", ""),
-                    "src_type": getattr(pkt, "src_type", ""),
-                    "dst_type": getattr(pkt, "dst_type", ""),
-                    "src_vlan": getattr(pkt, "src_vlan", 0),
-                    "dst_vlan": getattr(pkt, "dst_vlan", 0),
-                    "bytes": getattr(pkt, "size", 0),
-                    "delay_ms": getattr(pkt, "delay_ms", 0),
-                    "hops": getattr(pkt, "hops", 0),
-                    "status": getattr(pkt, "status", "unknown"),
-                    "loss_reason": getattr(pkt, "loss_reason", "none"),
-                }
-            )
+    def _packet_to_record(self, pkt: Any) -> Dict[str, Any]:
+        return {
+            "timestamp": getattr(pkt, "timestamp", 0),
+            "src_ip": getattr(pkt, "src_ip", ""),
+            "dst_ip": getattr(pkt, "dst_ip", ""),
+            "src_name": getattr(pkt, "src_name", ""),
+            "dst_name": getattr(pkt, "dst_name", ""),
+            "src_type": getattr(pkt, "src_type", ""),
+            "dst_type": getattr(pkt, "dst_type", ""),
+            "src_vlan": getattr(pkt, "src_vlan", 0),
+            "dst_vlan": getattr(pkt, "dst_vlan", 0),
+            "bytes": getattr(pkt, "size", 0),
+            "delay_ms": getattr(pkt, "delay_ms", 0),
+            "hops": getattr(pkt, "hops", 0),
+            "status": getattr(pkt, "status", "unknown"),
+            "loss_reason": getattr(pkt, "loss_reason", "none"),
+        }
 
-        return pd.DataFrame(data) if data else pd.DataFrame()
+    def _records_for_vlan(self, vlan: int) -> List[Dict[str, Any]]:
+        return [
+            r
+            for r in self.records
+            if r["src_vlan"] == vlan or r["dst_vlan"] == vlan
+        ]
+
+    def _mean(self, values: List[float]) -> float:
+        return round(mean(values), 2) if values else 0
+
+    def _std(self, values: List[float]) -> float:
+        return round(pstdev(values), 2) if len(values) > 1 else 0
+
+    def _quantile(self, values: List[float], q: float) -> float:
+        if not values:
+            return 0
+        ordered = sorted(values)
+        pos = (len(ordered) - 1) * q
+        lower = int(pos)
+        upper = min(lower + 1, len(ordered) - 1)
+        if lower == upper:
+            return round(ordered[lower], 2)
+        frac = pos - lower
+        return round(ordered[lower] + (ordered[upper] - ordered[lower]) * frac, 2)
 
     def get_overall_stats(self) -> Dict[str, Any]:
-        """
-        Get overall network statistics.
-
-        Returns:
-            Dictionary with overall metrics (packets, delivery rate, delay, etc.)
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return self._empty_stats()
 
-        delivered = len(self.df[self.df["status"] == "delivered"])
-        total = len(self.df)
+        delivered = [r for r in self.records if r["status"] == "delivered"]
+        delays = [float(r["delay_ms"]) for r in self.records]
+        hops = [int(r["hops"]) for r in self.records]
+        total = len(self.records)
 
         return {
             "total_packets": total,
-            "delivered_packets": delivered,
-            "dropped_packets": total - delivered,
-            "delivery_rate": round((delivered / total) * 100, 2) if total > 0 else 0,
-            "avg_delay_ms": round(self.df["delay_ms"].mean(), 2),
-            "std_delay_ms": round(self.df["delay_ms"].std(), 2),
-            "min_delay_ms": round(self.df["delay_ms"].min(), 2),
-            "max_delay_ms": round(self.df["delay_ms"].max(), 2),
-            "avg_hops": round(self.df["hops"].mean(), 2),
-            "min_hops": int(self.df["hops"].min()),
-            "max_hops": int(self.df["hops"].max()),
+            "delivered_packets": len(delivered),
+            "dropped_packets": total - len(delivered),
+            "delivery_rate": round((len(delivered) / total) * 100, 2) if total else 0,
+            "avg_delay_ms": self._mean(delays),
+            "std_delay_ms": self._std(delays),
+            "min_delay_ms": round(min(delays), 2) if delays else 0,
+            "max_delay_ms": round(max(delays), 2) if delays else 0,
+            "avg_hops": self._mean(hops),
+            "min_hops": min(hops) if hops else 0,
+            "max_hops": max(hops) if hops else 0,
         }
 
-    def get_vlan_statistics(self) -> pd.DataFrame:
-        """
-        Get per-VLAN statistics.
+    def get_vlan_statistics(self) -> List[Dict[str, Any]]:
+        if not self.records:
+            return []
 
-        Returns:
-            DataFrame with columns: vlan, packets_total, packets_delivered,
-                                   packets_lost, delivery_rate, avg_delay_ms,
-                                   avg_hops, loss_reasons
-        """
-        if len(self.df) == 0:
-            return pd.DataFrame()
-
-        vlan_stats = []
-
-        # Consider both source and destination VLANs
-        all_vlans = set(self.df["src_vlan"].dropna()) | set(
-            self.df["dst_vlan"].dropna()
+        all_vlans = sorted(
+            {
+                int(v)
+                for r in self.records
+                for v in (r["src_vlan"], r["dst_vlan"])
+                if v not in (None, "")
+            }
         )
 
-        for vlan in sorted(all_vlans):
-            if pd.isna(vlan):
+        vlan_stats = []
+        for vlan in all_vlans:
+            vlan_packets = self._records_for_vlan(vlan)
+            if not vlan_packets:
                 continue
 
-            vlan_packets = self.df[
-                (self.df["src_vlan"] == vlan) | (self.df["dst_vlan"] == vlan)
-            ]
-
-            if len(vlan_packets) == 0:
-                continue
-
-            delivered = len(vlan_packets[vlan_packets["status"] == "delivered"])
-            delivery_rate = (
-                (delivered / len(vlan_packets)) * 100 if len(vlan_packets) > 0 else 0
-            )
-
+            delivered = [r for r in vlan_packets if r["status"] == "delivered"]
+            delays = [float(r["delay_ms"]) for r in vlan_packets]
+            hops = [int(r["hops"]) for r in vlan_packets]
             vlan_stats.append(
                 {
-                    "vlan": int(vlan),
+                    "vlan": vlan,
                     "packets_total": len(vlan_packets),
-                    "packets_delivered": delivered,
-                    "packets_lost": len(
-                        vlan_packets[vlan_packets["status"] != "delivered"]
-                    ),
-                    "delivery_rate": round(delivery_rate, 2),
-                    "avg_delay_ms": round(vlan_packets["delay_ms"].mean(), 2),
-                    "avg_hops": round(vlan_packets["hops"].mean(), 2),
+                    "packets_delivered": len(delivered),
+                    "packets_lost": len(vlan_packets) - len(delivered),
+                    "delivery_rate": round((len(delivered) / len(vlan_packets)) * 100, 2),
+                    "avg_delay_ms": self._mean(delays),
+                    "avg_hops": self._mean(hops),
                     "loss_reasons": self._get_loss_reasons(vlan_packets),
                 }
             )
 
-        return pd.DataFrame(vlan_stats)
+        return vlan_stats
 
-    def get_device_statistics(self) -> pd.DataFrame:
-        """
-        Get per-device statistics for major devices.
-
-        Returns:
-            DataFrame with columns: device, device_type, vlan, packets_sent,
-                                   packets_delivered, delivery_rate, avg_delay_ms,
-                                   primary_destinations
-        """
-        if len(self.df) == 0:
-            return pd.DataFrame()
+    def get_device_statistics(self) -> List[Dict[str, Any]]:
+        if not self.records:
+            return []
 
         device_stats = []
-
-        # Get all sending devices
-        all_devices = self.df["src_name"].unique()
+        all_devices = sorted({r["src_name"] for r in self.records if r["src_name"]})
 
         for device in all_devices:
-            device_packets = self.df[self.df["src_name"] == device]
-
-            if len(device_packets) == 0:
+            device_packets = [r for r in self.records if r["src_name"] == device]
+            if not device_packets:
                 continue
 
-            delivered = len(device_packets[device_packets["status"] == "delivered"])
-            delivery_rate = (
-                (delivered / len(device_packets)) * 100
-                if len(device_packets) > 0
-                else 0
-            )
+            delivered = [r for r in device_packets if r["status"] == "delivered"]
+            delays = [float(r["delay_ms"]) for r in device_packets]
+            destination_counts = defaultdict(int)
+            for r in device_packets:
+                destination_counts[r["dst_name"]] += 1
 
-            # Get primary destinations
-            primary_destinations = list(
-                device_packets["dst_name"].value_counts().head(3).index
-            )
+            primary_destinations = [
+                name for name, _ in sorted(destination_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+            ]
 
             device_stats.append(
                 {
                     "device": device,
-                    "device_type": device_packets["src_type"].iloc[0]
-                    if len(device_packets) > 0
-                    else "Unknown",
-                    "vlan": device_packets["src_vlan"].iloc[0]
-                    if len(device_packets) > 0
-                    else None,
+                    "device_type": device_packets[0]["src_type"] if device_packets else "Unknown",
+                    "vlan": device_packets[0]["src_vlan"] if device_packets else None,
                     "packets_sent": len(device_packets),
-                    "packets_delivered": delivered,
-                    "delivery_rate": round(delivery_rate, 2),
-                    "avg_delay_ms": round(device_packets["delay_ms"].mean(), 2),
+                    "packets_delivered": len(delivered),
+                    "delivery_rate": round((len(delivered) / len(device_packets)) * 100, 2),
+                    "avg_delay_ms": self._mean(delays),
                     "primary_destinations": ", ".join(primary_destinations),
                 }
             )
 
-        return pd.DataFrame(device_stats)
+        return device_stats
 
     def get_traffic_type_statistics(self) -> Dict[str, Dict[str, Any]]:
-        """
-        Get per-traffic-type statistics (by destination server).
-
-        Returns:
-            Dictionary with statistics for each traffic type
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return {}
 
         traffic_stats = {}
-
-        # Extract traffic type from destination name
-        destinations = self.df["dst_name"].unique()
-
-        for dest in destinations:
-            dest_packets = self.df[self.df["dst_name"] == dest]
-
-            if len(dest_packets) == 0:
+        for dest in sorted({r["dst_name"] for r in self.records if r["dst_name"]}):
+            dest_packets = [r for r in self.records if r["dst_name"] == dest]
+            if not dest_packets:
                 continue
 
-            delivered = len(dest_packets[dest_packets["status"] == "delivered"])
-            delivery_rate = (
-                (delivered / len(dest_packets)) * 100 if len(dest_packets) > 0 else 0
-            )
-
+            delivered = [r for r in dest_packets if r["status"] == "delivered"]
+            delays = [float(r["delay_ms"]) for r in dest_packets]
             traffic_stats[dest] = {
                 "packets": len(dest_packets),
-                "delivered": delivered,
-                "dropped": len(dest_packets[dest_packets["status"] != "delivered"]),
-                "delivery_rate": round(delivery_rate, 2),
-                "avg_delay_ms": round(dest_packets["delay_ms"].mean(), 2),
-                "avg_hops": round(dest_packets["hops"].mean(), 2),
-                "percentage": round((len(dest_packets) / len(self.df)) * 100, 2),
+                "delivered": len(delivered),
+                "dropped": len(dest_packets) - len(delivered),
+                "delivery_rate": round((len(delivered) / len(dest_packets)) * 100, 2),
+                "avg_delay_ms": self._mean(delays),
+                "avg_hops": self._mean([int(r["hops"]) for r in dest_packets]),
+                "percentage": round((len(dest_packets) / len(self.records)) * 100, 2),
             }
 
         return traffic_stats
 
     def get_loss_breakdown(self) -> Dict[str, Any]:
-        """
-        Get packet loss breakdown by reason.
-
-        Returns:
-            Dictionary with loss reason counts and percentages
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return {}
 
         loss_breakdown = {
-            "delivered": len(self.df[self.df["status"] == "delivered"]),
-            "link_loss": len(self.df[self.df["loss_reason"] == "link_loss"]),
-            "ttl_exceeded": len(self.df[self.df["loss_reason"] == "ttl_exceeded"]),
-            "acl_blocked": len(self.df[self.df["loss_reason"] == "acl_blocked"]),
-            "timeout": len(self.df[self.df["loss_reason"] == "timeout"]),
-            "other": len(self.df[self.df["loss_reason"] == "other"]),
+            "delivered": sum(1 for r in self.records if r["status"] == "delivered"),
+            "link_loss": sum(1 for r in self.records if r["loss_reason"] == "link_loss"),
+            "ttl_exceeded": sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded"),
+            "acl_blocked": sum(1 for r in self.records if r["loss_reason"] == "acl_blocked"),
+            "timeout": sum(1 for r in self.records if r["loss_reason"] == "timeout"),
+            "other": sum(1 for r in self.records if r["loss_reason"] == "other"),
         }
 
         total = sum(loss_breakdown.values())
@@ -257,123 +205,80 @@ class NetworkAnalyzer:
         return loss_breakdown
 
     def get_hop_distribution(self) -> Dict[int, int]:
-        """
-        Get distribution of hop counts.
-
-        Returns:
-            Dictionary mapping hop count to frequency
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return {}
 
-        hop_counts = self.df["hops"].value_counts().to_dict()
-        return {int(k): v for k, v in sorted(hop_counts.items())}
+        counts = defaultdict(int)
+        for r in self.records:
+            counts[int(r["hops"])] += 1
+        return dict(sorted(counts.items()))
 
     def get_delay_distribution(self) -> Dict[int, Any]:
-        """
-        Get delay statistics per VLAN.
-
-        Returns:
-            Dictionary with delay statistics for each VLAN
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return {}
 
         delay_dist = {}
-        all_vlans = set(self.df["src_vlan"].dropna()) | set(
-            self.df["dst_vlan"].dropna()
+        all_vlans = sorted(
+            {
+                int(v)
+                for r in self.records
+                for v in (r["src_vlan"], r["dst_vlan"])
+                if v not in (None, "")
+            }
         )
 
-        for vlan in sorted(all_vlans):
-            if pd.isna(vlan):
+        for vlan in all_vlans:
+            vlan_packets = self._records_for_vlan(vlan)
+            if not vlan_packets:
                 continue
-
-            vlan_packets = self.df[
-                (self.df["src_vlan"] == vlan) | (self.df["dst_vlan"] == vlan)
-            ]
-
-            if len(vlan_packets) == 0:
-                continue
-
-            delays = vlan_packets["delay_ms"].dropna()
-
-            delay_dist[int(vlan)] = {
-                "min": round(delays.min(), 2) if len(delays) > 0 else 0,
-                "q1": round(delays.quantile(0.25), 2) if len(delays) > 0 else 0,
-                "median": round(delays.median(), 2) if len(delays) > 0 else 0,
-                "q3": round(delays.quantile(0.75), 2) if len(delays) > 0 else 0,
-                "max": round(delays.max(), 2) if len(delays) > 0 else 0,
-                "mean": round(delays.mean(), 2) if len(delays) > 0 else 0,
+            delays = [float(r["delay_ms"]) for r in vlan_packets]
+            delay_dist[vlan] = {
+                "min": round(min(delays), 2) if delays else 0,
+                "q1": self._quantile(delays, 0.25),
+                "median": self._quantile(delays, 0.50),
+                "q3": self._quantile(delays, 0.75),
+                "max": round(max(delays), 2) if delays else 0,
+                "mean": self._mean(delays),
             }
 
         return delay_dist
 
     def get_temporal_data(self) -> Dict[float, int]:
-        """
-        Get cumulative packet delivery over time.
-
-        Returns:
-            Dictionary mapping timestamp to cumulative packet count
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return {}
 
-        # Filter only delivered packets
-        delivered = self.df[self.df["status"] == "delivered"].copy()
-
-        if len(delivered) == 0:
+        delivered = [r for r in self.records if r["status"] == "delivered"]
+        if not delivered:
             return {}
 
-        # Sort by timestamp
-        delivered = delivered.sort_values("timestamp")
+        per_timestamp = defaultdict(int)
+        for r in delivered:
+            per_timestamp[float(r["timestamp"])] += 1
 
-        # Create cumulative count
-        temporal_data = {}
-        for idx, row in delivered.iterrows():
-            ts = row["timestamp"]
-            temporal_data[ts] = temporal_data.get(ts, 0) + 1
-
-        # Convert to cumulative
         cumulative = {}
         total = 0
-        for ts in sorted(temporal_data.keys()):
-            total += temporal_data[ts]
+        for ts in sorted(per_timestamp.keys()):
+            total += per_timestamp[ts]
             cumulative[ts] = total
-
         return cumulative
 
     def get_device_pair_communication(self) -> Dict[str, Dict[str, int]]:
-        """
-        Get communication volume between device pairs.
-
-        Returns:
-            Dictionary mapping (src, dst) to packet count
-        """
-        if len(self.df) == 0:
+        if not self.records:
             return {}
 
         comm_matrix = defaultdict(lambda: defaultdict(int))
-
-        for _, row in self.df.iterrows():
-            src = row["src_name"]
-            dst = row["dst_name"]
-            comm_matrix[src][dst] += 1
-
-        # Convert to regular dict
+        for r in self.records:
+            comm_matrix[r["src_name"]][r["dst_name"]] += 1
         return {src: dict(dests) for src, dests in comm_matrix.items()}
 
-    def _get_loss_reasons(self, packets_df: pd.DataFrame) -> Dict[str, int]:
-        """Get loss reason breakdown for a subset of packets."""
-        if len(packets_df) == 0:
-            return {}
-        return (
-            packets_df[packets_df["status"] != "delivered"]["loss_reason"]
-            .value_counts()
-            .to_dict()
-        )
+    def _get_loss_reasons(self, packets: List[Dict[str, Any]]) -> Dict[str, int]:
+        reasons = defaultdict(int)
+        for r in packets:
+            if r["status"] != "delivered":
+                reasons[r["loss_reason"]] += 1
+        return dict(reasons)
 
     def _empty_stats(self) -> Dict[str, Any]:
-        """Return empty stats structure."""
         return {
             "total_packets": 0,
             "delivered_packets": 0,

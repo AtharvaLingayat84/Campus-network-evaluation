@@ -41,7 +41,7 @@ This project simulates a complex campus network topology with:
 ### 1. Install Dependencies
 
 ```bash
-pip install simpy networkx matplotlib pandas pyyaml
+pip install simpy networkx matplotlib pyyaml
 ```
 
 ### 2. Run Simulation
@@ -181,10 +181,50 @@ visualization:
 
 ## 📖 Documentation
 
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed network design and packet flow
-- **[ANALYSIS_GUIDE.md](docs/ANALYSIS_GUIDE.md)** - Interpretation of visualizations and metrics
-- **[EXTENDING.md](docs/EXTENDING.md)** - Adding features and custom analysis
-- **[network_simulation.log](network_simulation.log)** - Detailed timestamped events (generated)
+All core project guidance is compiled below so the repository can be understood from this file alone.
+
+### Architecture Summary
+
+- Core engine: `campus_network_simulation.py`
+- Unified entry point: `app.py`
+- Analytics: `network_analyzer.py`
+- Charts: `visualization_enhanced.py`
+- Export: `data_exporter.py`
+- Reports: `report_generator.py`
+- Packet structure: `packet_collector.py`
+
+### Network Flow Summary
+
+1. Build the campus topology with routers, firewall, switches, servers, and end devices.
+2. Run traffic in `normal` mode or `exam` mode.
+3. Collect packet outcomes and timing data.
+4. Analyze the packet set for VLAN, device, traffic-type, delay, and hop metrics.
+5. Generate charts, CSV/JSON exports, and text reports.
+
+### Analysis Guide
+
+- Delivery rate shows how many packets reached their destination.
+- Average delay measures end-to-end latency.
+- Hop count shows path efficiency.
+- Loss breakdown separates link loss, TTL expiry, ACL blocking, timeout, and other drops.
+- VLAN statistics show performance per subnet/floor.
+- Device statistics show how individual sources behave.
+
+### Extension Guide
+
+- To add a chart, extend `EnhancedVisualizations`.
+- To add a metric, extend `NetworkAnalyzer`.
+- To add a new export format, extend `DataExporter`.
+- To change topology or routing behavior, update `campus_network_simulation.py`.
+- To change default behavior, edit `config.yaml`.
+
+### Generated Files
+
+- `network_simulation.log` - runtime event log
+- `output/*.png` - charts and topology images
+- `output/*.csv` - packet-level exports
+- `output/*.json` - summaries and comparisons
+- `output/*.txt` - human-readable reports
 
 ## 🔍 Interpretation Guide
 
@@ -251,7 +291,6 @@ Campus-network-evaluation/
 ├── archive/                           # Deprecated implementations
 │   ├── network.py
 │   ├── network_log.py
-│   ├── gephi.py
 │   └── project_try.py
 └── output/                            # Generated files
     ├── *.png                          # Visualizations
@@ -266,8 +305,6 @@ Campus-network-evaluation/
 3. **Custom export**: Extend `DataExporter` class
 4. **Topology change**: Modify `campus_network_simulation.py` (see EXTENDING.md)
 
-See [docs/EXTENDING.md](docs/EXTENDING.md) for detailed instructions.
-
 ## 🧪 Testing
 
 ```bash
@@ -278,7 +315,7 @@ python run_enhanced_simulation.py
 ls output/
 
 # Validate CSV export
-python -c "import pandas as pd; df = pd.read_csv('output/simulation_results_normal.csv'); print(f'Packets: {len(df)}')"
+python -c "import csv; print(sum(1 for _ in csv.DictReader(open('output/simulation_results_normal.csv', encoding='utf-8'))))"
 
 # Validate JSON
 python -c "import json; data = json.load(open('output/simulation_comparison.json')); print(data['deltas'])"

@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-04-08T21:40:28.418841",
+  "timestamp": "2026-04-20T13:49:12.772992",
   "summary": {
     "total_packets": 430,
     "delivered_packets": 267,
     "dropped_packets": 163,
-    "delivery_rate": 62.093023255813954,
-    "avg_delay_ms": 3.298756902287423,
-    "avg_hops": 2.8209302325581396,
+    "delivery_rate": 62.09,
+    "avg_delay_ms": 3.3,
+    "avg_hops": 2.82,
     "max_delay_ms": 7.924831732242332,
     "min_delay_ms": 0.0
   },
@@ -19,9 +19,8 @@
       "avg_delay_ms": 3.33,
       "avg_hops": 2.8,
       "loss_reasons": {
-        "none": 34,
-        "acl_blocked": 17,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 17
       }
     },
     "102": {
@@ -32,9 +31,8 @@
       "avg_delay_ms": 3.27,
       "avg_hops": 2.83,
       "loss_reasons": {
-        "none": 34,
-        "acl_blocked": 17,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 17
       }
     },
     "103": {
@@ -45,9 +43,8 @@
       "avg_delay_ms": 3.32,
       "avg_hops": 2.87,
       "loss_reasons": {
-        "none": 34,
-        "acl_blocked": 17,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 17
       }
     },
     "104": {
@@ -58,9 +55,8 @@
       "avg_delay_ms": 3.29,
       "avg_hops": 2.81,
       "loss_reasons": {
-        "none": 33,
-        "acl_blocked": 17,
-        "link_loss": 4
+        "link_loss": 4,
+        "acl_blocked": 17
       }
     },
     "105": {
@@ -71,9 +67,8 @@
       "avg_delay_ms": 3.12,
       "avg_hops": 2.78,
       "loss_reasons": {
-        "none": 33,
-        "acl_blocked": 18,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 18
       }
     },
     "106": {
@@ -84,9 +79,8 @@
       "avg_delay_ms": 3.27,
       "avg_hops": 2.74,
       "loss_reasons": {
-        "none": 33,
-        "acl_blocked": 18,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 18
       }
     },
     "107": {
@@ -97,9 +91,8 @@
       "avg_delay_ms": 3.33,
       "avg_hops": 2.89,
       "loss_reasons": {
-        "none": 33,
-        "acl_blocked": 17,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 17
       }
     },
     "108": {
@@ -110,9 +103,8 @@
       "avg_delay_ms": 3.46,
       "avg_hops": 2.85,
       "loss_reasons": {
-        "none": 33,
-        "acl_blocked": 17,
-        "link_loss": 3
+        "link_loss": 3,
+        "acl_blocked": 17
       }
     },
     "128": {
@@ -123,37 +115,48 @@
       "avg_delay_ms": 3.3,
       "avg_hops": 2.82,
       "loss_reasons": {
-        "none": 267,
-        "acl_blocked": 138,
-        "link_loss": 25
+        "link_loss": 25,
+        "acl_blocked": 138
       }
     }
   },
   "per_device": {},
   "per_traffic_type": {
-    "Exam Server": {
-      "packets": 0,
-      "delivery_rate": 0,
-      "avg_delay_ms": 0,
-      "percentage": 0
+    "CLOUD_SERVER": {
+      "packets": 158,
+      "delivered": 89,
+      "dropped": 69,
+      "delivery_rate": 56.33,
+      "avg_delay_ms": 2.86,
+      "avg_hops": 2.34,
+      "percentage": 36.74
     },
-    "Email Server": {
-      "packets": 0,
-      "delivery_rate": 0,
-      "avg_delay_ms": 0,
-      "percentage": 0
+    "EMAIL_SERVER": {
+      "packets": 101,
+      "delivered": 89,
+      "dropped": 12,
+      "delivery_rate": 88.12,
+      "avg_delay_ms": 4.77,
+      "avg_hops": 4.12,
+      "percentage": 23.49
     },
-    "Cloud Server": {
-      "packets": 0,
-      "delivery_rate": 0,
-      "avg_delay_ms": 0,
-      "percentage": 0
+    "EXAM_SERVER": {
+      "packets": 102,
+      "delivered": 89,
+      "dropped": 13,
+      "delivery_rate": 87.25,
+      "avg_delay_ms": 4.75,
+      "avg_hops": 4.2,
+      "percentage": 23.72
     },
-    "Internet GW": {
-      "packets": 0,
-      "delivery_rate": 0,
-      "avg_delay_ms": 0,
-      "percentage": 0
+    "INTERNET": {
+      "packets": 69,
+      "delivered": 0,
+      "dropped": 69,
+      "delivery_rate": 0.0,
+      "avg_delay_ms": 0.0,
+      "avg_hops": 0.0,
+      "percentage": 16.05
     }
   },
   "loss_breakdown": {

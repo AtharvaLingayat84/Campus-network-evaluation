@@ -150,7 +150,7 @@ PER-VLAN PERFORMANCE:
             report += f"{'VLAN':<8} {'Packets':<12} {'Delivery%':<12} {'Avg Delay':<12} {'Avg Hops':<12}\n"
             report += "─" * 79 + "\n"
 
-            for _, row in vlan_stats.iterrows():
+            for row in vlan_stats:
                 vlan = int(row["vlan"])
                 packets = row["packets_total"]
                 delivery = row["delivery_rate"]
