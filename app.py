@@ -27,7 +27,7 @@ from data_exporter import DataExporter
 from network_analyzer import NetworkAnalyzer
 from packet_collector import PacketRecord
 from report_generator import ReportGenerator
-from campus_topology_visualizer import render_campus_topology
+from campus_topology_visualizer import render_clean_topology
 from visualization_enhanced import EnhancedVisualizations
 
 
@@ -215,7 +215,7 @@ def run_complete_simulation(config_file: str = "config.yaml") -> Tuple[Dict[str,
     print("Generating Normal Mode Visualizations...")
     visualizer.plot_vlan_traffic(mode="normal")
     visualizer.plot_path_efficiency()
-    render_campus_topology(net_normal, save_path=os.path.join(output_dir, "campus_topology.png"), dpi=dpi)
+    render_clean_topology(save_path=os.path.join(output_dir, "campus_topology.png"), dpi=dpi)
 
     output_cfg = config.get("output", {})
     if any(
