@@ -1,186 +1,237 @@
 {
-  "timestamp": "2026-04-20T18:30:10.378200",
+  "timestamp": "2026-04-24T21:54:16.767703",
   "summary": {
-    "total_packets": 430,
-    "delivered_packets": 267,
-    "dropped_packets": 163,
-    "delivery_rate": 62.09,
-    "avg_delay_ms": 3.3,
-    "avg_hops": 2.82,
-    "max_delay_ms": 7.924831732242332,
-    "min_delay_ms": 0.0
+    "total_packets": 491,
+    "delivered_packets": 255,
+    "dropped_packets": 236,
+    "dropped_loss_packets": 37,
+    "dropped_ttl_packets": 0,
+    "acl_blocked_packets": 199,
+    "delivery_rate": 51.93,
+    "avg_delay_ms": 6.78,
+    "avg_hops": 5.92,
+    "max_delay_ms": 9.901702029115876,
+    "min_delay_ms": 1.14208669238737
   },
   "per_vlan": {
     "101": {
-      "packets_total": 54,
-      "packets_delivered": 34,
-      "packets_lost": 20,
-      "delivery_rate": 62.96,
-      "avg_delay_ms": 3.33,
-      "avg_hops": 2.8,
+      "packets_total": 62,
+      "packets_delivered": 32,
+      "dropped_packets": 30,
+      "dropped_loss": 5,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 5,
+      "delivery_rate": 51.61,
+      "avg_delay_ms": 6.89,
+      "avg_hops": 6.03,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 17
+        "link_loss": 5,
+        "acl_blocked": 25
       }
     },
     "102": {
-      "packets_total": 54,
-      "packets_delivered": 34,
-      "packets_lost": 20,
-      "delivery_rate": 62.96,
-      "avg_delay_ms": 3.27,
-      "avg_hops": 2.83,
+      "packets_total": 62,
+      "packets_delivered": 32,
+      "dropped_packets": 30,
+      "dropped_loss": 5,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 5,
+      "delivery_rate": 51.61,
+      "avg_delay_ms": 6.71,
+      "avg_hops": 5.86,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 17
+        "link_loss": 5,
+        "acl_blocked": 25
       }
     },
     "103": {
-      "packets_total": 54,
-      "packets_delivered": 34,
-      "packets_lost": 20,
-      "delivery_rate": 62.96,
-      "avg_delay_ms": 3.32,
-      "avg_hops": 2.87,
+      "packets_total": 62,
+      "packets_delivered": 32,
+      "dropped_packets": 30,
+      "dropped_loss": 5,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 5,
+      "delivery_rate": 51.61,
+      "avg_delay_ms": 6.44,
+      "avg_hops": 5.89,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 17
+        "link_loss": 5,
+        "acl_blocked": 25
       }
     },
     "104": {
-      "packets_total": 54,
-      "packets_delivered": 33,
-      "packets_lost": 21,
-      "delivery_rate": 61.11,
-      "avg_delay_ms": 3.29,
-      "avg_hops": 2.81,
+      "packets_total": 61,
+      "packets_delivered": 32,
+      "dropped_packets": 29,
+      "dropped_loss": 5,
+      "dropped_ttl": 0,
+      "acl_blocked": 24,
+      "packets_lost": 5,
+      "delivery_rate": 52.46,
+      "avg_delay_ms": 7.08,
+      "avg_hops": 6.0,
       "loss_reasons": {
-        "link_loss": 4,
-        "acl_blocked": 17
+        "link_loss": 5,
+        "acl_blocked": 24
       }
     },
     "105": {
-      "packets_total": 54,
-      "packets_delivered": 33,
-      "packets_lost": 21,
-      "delivery_rate": 61.11,
-      "avg_delay_ms": 3.12,
-      "avg_hops": 2.78,
+      "packets_total": 61,
+      "packets_delivered": 32,
+      "dropped_packets": 29,
+      "dropped_loss": 4,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 4,
+      "delivery_rate": 52.46,
+      "avg_delay_ms": 6.85,
+      "avg_hops": 5.92,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 18
+        "link_loss": 4,
+        "acl_blocked": 25
       }
     },
     "106": {
-      "packets_total": 54,
-      "packets_delivered": 33,
-      "packets_lost": 21,
-      "delivery_rate": 61.11,
-      "avg_delay_ms": 3.27,
-      "avg_hops": 2.74,
+      "packets_total": 61,
+      "packets_delivered": 32,
+      "dropped_packets": 29,
+      "dropped_loss": 4,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 4,
+      "delivery_rate": 52.46,
+      "avg_delay_ms": 7.08,
+      "avg_hops": 6.03,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 18
+        "link_loss": 4,
+        "acl_blocked": 25
       }
     },
     "107": {
-      "packets_total": 53,
-      "packets_delivered": 33,
-      "packets_lost": 20,
-      "delivery_rate": 62.26,
-      "avg_delay_ms": 3.33,
-      "avg_hops": 2.89,
+      "packets_total": 61,
+      "packets_delivered": 32,
+      "dropped_packets": 29,
+      "dropped_loss": 4,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 4,
+      "delivery_rate": 52.46,
+      "avg_delay_ms": 6.9,
+      "avg_hops": 5.97,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 17
+        "link_loss": 4,
+        "acl_blocked": 25
       }
     },
     "108": {
-      "packets_total": 53,
-      "packets_delivered": 33,
-      "packets_lost": 20,
-      "delivery_rate": 62.26,
-      "avg_delay_ms": 3.46,
-      "avg_hops": 2.85,
+      "packets_total": 61,
+      "packets_delivered": 31,
+      "dropped_packets": 30,
+      "dropped_loss": 5,
+      "dropped_ttl": 0,
+      "acl_blocked": 25,
+      "packets_lost": 5,
+      "delivery_rate": 50.82,
+      "avg_delay_ms": 6.32,
+      "avg_hops": 5.69,
       "loss_reasons": {
-        "link_loss": 3,
-        "acl_blocked": 17
+        "link_loss": 5,
+        "acl_blocked": 25
       }
     },
     "128": {
-      "packets_total": 430,
-      "packets_delivered": 267,
-      "packets_lost": 163,
-      "delivery_rate": 62.09,
-      "avg_delay_ms": 3.3,
-      "avg_hops": 2.82,
+      "packets_total": 491,
+      "packets_delivered": 255,
+      "dropped_packets": 236,
+      "dropped_loss": 37,
+      "dropped_ttl": 0,
+      "acl_blocked": 199,
+      "packets_lost": 37,
+      "delivery_rate": 51.93,
+      "avg_delay_ms": 6.78,
+      "avg_hops": 5.92,
       "loss_reasons": {
-        "link_loss": 25,
-        "acl_blocked": 138
+        "link_loss": 37,
+        "acl_blocked": 199
       }
     }
   },
   "per_device": {},
   "per_traffic_type": {
     "CLOUD_SERVER": {
-      "packets": 158,
-      "delivered": 89,
-      "dropped": 69,
-      "delivery_rate": 56.33,
-      "avg_delay_ms": 2.86,
-      "avg_hops": 2.34,
-      "percentage": 36.74
+      "packets": 185,
+      "delivered": 85,
+      "dropped_packets": 100,
+      "dropped_loss": 0,
+      "dropped_ttl": 0,
+      "acl_blocked": 100,
+      "dropped": 0,
+      "delivery_rate": 45.95,
+      "avg_delay_ms": 7.28,
+      "avg_hops": 6.15,
+      "percentage": 37.68
     },
     "EMAIL_SERVER": {
-      "packets": 101,
-      "delivered": 89,
-      "dropped": 12,
-      "delivery_rate": 88.12,
-      "avg_delay_ms": 4.77,
-      "avg_hops": 4.12,
-      "percentage": 23.49
+      "packets": 103,
+      "delivered": 85,
+      "dropped_packets": 18,
+      "dropped_loss": 18,
+      "dropped_ttl": 0,
+      "acl_blocked": 0,
+      "dropped": 18,
+      "delivery_rate": 82.52,
+      "avg_delay_ms": 6.71,
+      "avg_hops": 5.87,
+      "percentage": 20.98
     },
     "EXAM_SERVER": {
-      "packets": 102,
-      "delivered": 89,
-      "dropped": 13,
-      "delivery_rate": 87.25,
-      "avg_delay_ms": 4.75,
-      "avg_hops": 4.2,
-      "percentage": 23.72
+      "packets": 104,
+      "delivered": 85,
+      "dropped_packets": 19,
+      "dropped_loss": 19,
+      "dropped_ttl": 0,
+      "acl_blocked": 0,
+      "dropped": 19,
+      "delivery_rate": 81.73,
+      "avg_delay_ms": 6.45,
+      "avg_hops": 5.79,
+      "percentage": 21.18
     },
     "INTERNET": {
-      "packets": 69,
+      "packets": 99,
       "delivered": 0,
-      "dropped": 69,
+      "dropped_packets": 99,
+      "dropped_loss": 0,
+      "dropped_ttl": 0,
+      "acl_blocked": 99,
+      "dropped": 0,
       "delivery_rate": 0.0,
       "avg_delay_ms": 0.0,
       "avg_hops": 0.0,
-      "percentage": 16.05
+      "percentage": 20.16
     }
   },
   "loss_breakdown": {
-    "delivered": 267,
-    "link_loss": 25,
-    "ttl_exceeded": 0,
-    "acl_blocked": 138,
-    "timeout": 0,
-    "other": 0,
+    "delivered": 255,
+    "dropped_loss": 37,
+    "dropped_ttl": 0,
+    "acl_blocked": 199,
     "percentages": {
-      "delivered": 62.09,
-      "link_loss": 5.81,
-      "ttl_exceeded": 0.0,
-      "acl_blocked": 32.09,
-      "timeout": 0.0,
-      "other": 0.0
+      "delivered": 51.93,
+      "dropped_loss": 7.54,
+      "dropped_ttl": 0.0,
+      "acl_blocked": 40.53
     }
   },
   "hop_distribution": {
-    "0": 138,
-    "2": 6,
-    "3": 7,
-    "4": 220,
-    "5": 54,
-    "6": 5
+    "0": 199,
+    "3": 9,
+    "4": 12,
+    "5": 14,
+    "6": 214,
+    "7": 43
   }
 }

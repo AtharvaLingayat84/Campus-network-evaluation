@@ -1,6 +1,6 @@
 # Campus Network Evaluation Simulator
 
-A discrete-event network simulator that models a realistic 2-campus enterprise network with 250+ devices, VLAN segmentation, and Cisco IOS routing concepts. Provides comprehensive analysis capabilities including advanced visualizations, detailed metrics, and automated reporting.
+A discrete-event network simulator that models a realistic 2-campus enterprise network with 250+ devices, VLAN segmentation, routed inter-VLAN traffic, and Cisco IOS routing concepts. Provides comprehensive analysis capabilities including advanced visualizations, detailed metrics, and automated reporting.
 
 ## 🎯 Overview
 
@@ -8,10 +8,10 @@ This project simulates a complex campus network topology with:
 - **2 campuses**: Main Campus (8 floors) + Campus 2 (4 floors)
 - **250+ network devices**: PCs, printers, wireless APs, phones, servers, routers, switches
 - **VLAN segmentation**: Isolated VLANs per floor with inter-VLAN routing
-- **Router-on-a-stick architecture**: Central core router for VLAN communication
+- **Router-on-a-stick architecture**: CORE_RTR enforces cross-VLAN routing
 - **Dynamic DHCP**: Automatic IP assignment per VLAN
-- **ACL-based policies**: Normal vs. Exam mode traffic restrictions
-- **Realistic packet flow**: Hop-by-hop forwarding, TTL handling, congestion-based loss
+- **ACL-based policies**: Normal vs. Exam mode traffic restrictions with separate ACL-blocked tracking
+- **Realistic packet flow**: Hop-by-hop forwarding, TTL handling, congestion-based loss, firewall delay
 
 ## ✨ Key Features
 
@@ -20,7 +20,7 @@ This project simulates a complex campus network topology with:
 - **Packet-level tracking**: Source, destination, VLAN, delay, hops, status
 - **Dual-mode operation**: Normal mode (all traffic) vs. Exam mode (restricted destinations)
 - **Loss modeling**: Congestion-based link loss, TTL expiration, ACL blocking
-- **Delay calculation**: Per-link delays with congestion factor
+- **Delay calculation**: Per-link delays with congestion factor and ASA_FW penalty
 
 ### Analysis & Reporting
 - **8 advanced visualizations**: VLAN traffic, device performance, delay distribution, loss breakdown, temporal analysis, path efficiency, traffic distribution, device communication heatmap
@@ -47,10 +47,10 @@ pip install simpy networkx matplotlib pyyaml
 ### 2. Run Simulation
 
 ```bash
-# Using enhanced simulation (recommended)
-python run_enhanced_simulation.py
+# Run the unified workflow
+python app.py
 
-# Or run original simulation
+# Or run the core simulation only
 python campus_network_simulation.py
 ```
 
@@ -67,18 +67,10 @@ All outputs saved to `./output/`:
 ### Per Simulation Run (16-18 files total)
 
 #### Visualizations
-- `topology_normal.png` - Network topology (normal mode)
-- `topology_exam.png` - Network topology (exam mode)
+- `campus_topology.png` - Network topology overview
 - `vlan_traffic_normal.png` - Per-VLAN packet volume
 - `vlan_traffic_exam.png` - Per-VLAN packet volume (exam)
-- `device_performance.png` - Device type delivery rates
-- `traffic_distribution.png` - Pie chart of traffic breakdown
-- `delay_distribution_normal.png` - VLAN latency box plots
-- `delay_distribution_exam.png` - VLAN latency box plots (exam)
-- `loss_breakdown_normal.png` - Loss reason stacked bars
-- `loss_breakdown_exam.png` - Loss reason stacked bars (exam)
-- `path_efficiency.png` - Hop count distribution histogram
-- `temporal_analysis.png` - Cumulative delivery over time
+- `path_efficiency.png` - Routed path hop count histogram
 - `communication_heatmap.png` - Device pair traffic matrix
 
 #### Data Exports
@@ -124,7 +116,7 @@ Server VLAN (VLAN 128, 10.128.0.0/24)
 - **Main Campus**: `10.1.{VLAN}.0/24` (e.g., 10.1.101.0/24 for VLAN 101)
 - **Campus 2**: `10.2.{VLAN}.0/24` (e.g., 10.2.201.0/24 for VLAN 201)
 - **Servers**: `10.128.0.0/24` (VLAN 128)
-- **DHCP**: First 20 IPs reserved for infrastructure, rest for end devices
+- **DHCP**: Reserved infrastructure range plus end-device pool allocation
 
 ### Traffic Patterns
 
@@ -139,6 +131,8 @@ Exam mode (ACL active):
 - **50%** → Exam Server
 - **50%** → Email Server
 - Other destinations **blocked**
+
+Blocked packets are reported separately as `acl_blocked`, not as link loss.
 
 ## ⚙️ Configuration
 
@@ -205,7 +199,7 @@ All core project guidance is compiled below so the repository can be understood 
 
 - Delivery rate shows how many packets reached their destination.
 - Average delay measures end-to-end latency.
-- Hop count shows path efficiency.
+- Hop count shows routed path efficiency.
 - Loss breakdown separates link loss, TTL expiry, ACL blocking, timeout, and other drops.
 - VLAN statistics show performance per subnet/floor.
 - Device statistics show how individual sources behave.
@@ -215,7 +209,7 @@ All core project guidance is compiled below so the repository can be understood 
 - To add a chart, extend `EnhancedVisualizations`.
 - To add a metric, extend `NetworkAnalyzer`.
 - To add a new export format, extend `DataExporter`.
-- To change topology or routing behavior, update `campus_network_simulation.py`.
+- To change routing behavior, update `campus_network_simulation.py`.
 - To change default behavior, edit `config.yaml`.
 
 ### Generated Files
@@ -225,6 +219,13 @@ All core project guidance is compiled below so the repository can be understood 
 - `output/*.csv` - packet-level exports
 - `output/*.json` - summaries and comparisons
 - `output/*.txt` - human-readable reports
+
+## Runtime Notes
+
+- `app.py` is the unified entry point for the full workflow.
+- `campus_network_simulation.py` is the source of truth for routing, ACL, firewall delay, and congestion decay.
+- `INTERNET` is treated as `8.8.8.8` in the updated simulation and exports.
+- ACL-blocked packets are tracked separately from loss in reports and exports.
 
 ## 🔍 Interpretation Guide
 
@@ -333,7 +334,7 @@ python -c "import json; data = json.load(open('output/simulation_comparison.json
 1. **Packet collection**: Currently reconstructed from statistics (not live-collected)
 2. **Topology size**: Tested up to 250 devices; scalability beyond 500 not verified
 3. **Wireless modeling**: No channel interference or signal strength simulation
-4. **Dynamic routing**: Uses static Dijkstra; no OSPF/BGP failover
+4. **Dynamic routing**: Uses static routing behavior; no OSPF/BGP failover
 5. **Traffic patterns**: Fixed weighted distribution; no temporal variation
 6. **STP**: No Spanning Tree Protocol; topology must be loop-free
 

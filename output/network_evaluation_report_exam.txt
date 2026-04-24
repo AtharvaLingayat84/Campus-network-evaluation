@@ -4,7 +4,7 @@ CAMPUS NETWORK SIMULATION EVALUATION REPORT
 ================================================================================
 
 Mode: EXAM MODE
-Generated: 2026-04-20 18:30:10
+Generated: 2026-04-24 21:54:16
 
 ================================================================================
 EXECUTIVE SUMMARY
@@ -18,18 +18,18 @@ findings and detailed performance metrics.
 KEY FINDINGS
 ================================================================================
 
-• Total Packets Processed: 430
-  Delivered: 267 (62.09%)
-  Dropped: 163
+• Total Packets Processed: 491
+  Delivered: 255 (51.93%)
+  Dropped: 236
 
 • Network Latency
-  Average Delay: 3.30 ms
-  Range: 0.00 - 7.92 ms
-  Std Dev: 2.43 ms
+  Average Delay: 6.78 ms
+  Range: 1.14 - 9.90 ms
+  Std Dev: 1.72 ms
 
 • Path Efficiency
-  Average Hop Count: 2.82
-  Range: 0 - 6 hops
+  Average Hop Count: 5.92
+  Range: 3 - 7 hops
 
 ================================================================================
 DETAILED METRICS
@@ -37,49 +37,59 @@ DETAILED METRICS
 
 OVERALL STATISTICS:
 
-  Total Packets:               430
-  Delivered:                   267 (62.09%)
-  Dropped:                     163
+  Total Packets:               491
+  Delivered:                   255 (51.93%)
+  Dropped (loss + TTL):          37
+  ACL Blocked (policy action):        199
   
-  Avg Delay:                  3.30 ms
-  Avg Hop Count:              2.82
+  Avg Delay:                  6.78 ms
+  Avg Hop Count:              5.92
+
+  Note: Delay and hop metrics are based on routed paths only; ACL-blocked packets are excluded.
 
 
 PER-VLAN PERFORMANCE:
 ─────────────────────────────────────────────────────────────────────────────
 VLAN     Packets      Delivery%    Avg Delay    Avg Hops    
 ───────────────────────────────────────────────────────────────────────────────
-101      54           62.96      % 3.33        ms 2.80        
-102      54           62.96      % 3.27        ms 2.83        
-103      54           62.96      % 3.32        ms 2.87        
-104      54           61.11      % 3.29        ms 2.81        
-105      54           61.11      % 3.12        ms 2.78        
-106      54           61.11      % 3.27        ms 2.74        
-107      53           62.26      % 3.33        ms 2.89        
-108      53           62.26      % 3.46        ms 2.85        
-128      430          62.09      % 3.30        ms 2.82        
+101      62           51.61      % 6.89        ms 6.03        
+         ACL blocked  25                                    
+102      62           51.61      % 6.71        ms 5.86        
+         ACL blocked  25                                    
+103      62           51.61      % 6.44        ms 5.89        
+         ACL blocked  25                                    
+104      61           52.46      % 7.08        ms 6.00        
+         ACL blocked  24                                    
+105      61           52.46      % 6.85        ms 5.92        
+         ACL blocked  25                                    
+106      61           52.46      % 7.08        ms 6.03        
+         ACL blocked  25                                    
+107      61           52.46      % 6.90        ms 5.97        
+         ACL blocked  25                                    
+108      61           50.82      % 6.32        ms 5.69        
+         ACL blocked  25                                    
+128      491          51.93      % 6.78        ms 5.92        
+         ACL blocked  199                                   
 
 
 TRAFFIC TYPE ANALYSIS:
 ─────────────────────────────────────────────────────────────────────────────
 Destination               Packets      Delivery%    % of Total  
 ───────────────────────────────────────────────────────────────────────────────
-CLOUD_SERVER              158          56.33      % 36.74      %
-EMAIL_SERVER              101          88.12      % 23.49      %
-EXAM_SERVER               102          87.25      % 23.72      %
-INTERNET                  69           0.00       % 16.05      %
+CLOUD_SERVER              185          45.95      % 37.68      %
+EMAIL_SERVER              103          82.52      % 20.98      %
+EXAM_SERVER               104          81.73      % 21.18      %
+INTERNET                  99           0.00       % 20.16      %
 
 
 PACKET LOSS BREAKDOWN:
 ─────────────────────────────────────────────────────────────────────────────
 Reason                    Count        Percentage  
 ───────────────────────────────────────────────────────────────────────────────
-Delivered                 267          62.09      %
-Link Loss (Congestion)    25           5.81       %
-TTL Exceeded              0            0.00       %
-ACL Blocked               138          32.09      %
-Timeout                   0            0.00       %
-Other                     0            0.00       %
+Delivered                 255          51.93      %
+Dropped Loss (link/timeout/other) 37           7.54       %
+Dropped TTL               0            0.00       %
+ACL Blocked (policy action) 199          40.53      %
 
 
 ================================================================================
@@ -87,20 +97,23 @@ OBSERVATIONS
 ================================================================================
 
 • Network Delivery Performance:
-  The network achieved a 62.1% delivery rate, indicating
+  The network achieved a 51.9% delivery rate, indicating
   room for optimization.
 
 • Latency Profile:
-  Average packet delay of 3.30 ms with variation of
-  2.43 ms suggests consistent network conditions.
+  Average packet delay of 6.78 ms with variation of
+  1.72 ms suggests consistent network conditions.
 
 • Path Efficiency:
-  Average hop count of 2.82 shows routing is
-  efficient.
+  Average hop count of 5.92 on routed paths shows routing is
+  suboptimal for current topology.
 
 • Primary Loss Factor:
   Link congestion 
   is the primary packet loss mechanism.
+
+• ACL Impact:
+  199 packets were ACL blocked as a policy action and are reported separately from loss.
 
 ================================================================================
 RECOMMENDATIONS
