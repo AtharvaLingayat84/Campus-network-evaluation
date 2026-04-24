@@ -20,6 +20,7 @@ class NetworkAnalyzer:
         self.records = [self._packet_to_record(pkt) for pkt in packets]
 
     def _packet_to_record(self, pkt: Any) -> Dict[str, Any]:
+        loss_reason = getattr(pkt, "loss_reason", "none")
         return {
             "timestamp": getattr(pkt, "timestamp", 0),
             "src_ip": getattr(pkt, "src_ip", ""),
@@ -34,7 +35,11 @@ class NetworkAnalyzer:
             "delay_ms": getattr(pkt, "delay_ms", 0),
             "hops": getattr(pkt, "hops", 0),
             "status": getattr(pkt, "status", "unknown"),
-            "loss_reason": getattr(pkt, "loss_reason", "none"),
+            "loss_reason": loss_reason,
+            "acl_blocked_reason": getattr(pkt, "acl_blocked_reason", ""),
+            "asa_fw_penalty_ms": getattr(pkt, "asa_fw_penalty_ms", 0.0),
+            "effective_delay_ms": float(getattr(pkt, "delay_ms", 0)) + float(getattr(pkt, "asa_fw_penalty_ms", 0.0)),
+            "effective_hops": int(getattr(pkt, "hops", 0)) + (1 if "ASA_FW" in getattr(pkt, "path", []) else 0),
         }
 
     def _records_for_vlan(self, vlan: int) -> List[Dict[str, Any]]:
@@ -67,14 +72,21 @@ class NetworkAnalyzer:
             return self._empty_stats()
 
         delivered = [r for r in self.records if r["status"] == "delivered"]
-        delays = [float(r["delay_ms"]) for r in self.records]
-        hops = [int(r["hops"]) for r in self.records]
+        traversed = [r for r in self.records if r["loss_reason"] != "acl_blocked"]
+        delays = [float(r["effective_delay_ms"]) for r in traversed]
+        hops = [int(r["effective_hops"]) for r in traversed]
         total = len(self.records)
+        acl_blocked = sum(1 for r in self.records if r["loss_reason"] == "acl_blocked")
+        dropped_ttl = sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded")
+        dropped_loss = sum(1 for r in self.records if r["loss_reason"] in ("link_loss", "timeout", "other"))
 
         return {
             "total_packets": total,
             "delivered_packets": len(delivered),
-            "dropped_packets": total - len(delivered),
+            "dropped_packets": sum(1 for r in self.records if r["status"] != "delivered"),
+            "dropped_loss_packets": dropped_loss,
+            "dropped_ttl_packets": dropped_ttl,
+            "acl_blocked_packets": acl_blocked,
             "delivery_rate": round((len(delivered) / total) * 100, 2) if total else 0,
             "avg_delay_ms": self._mean(delays),
             "std_delay_ms": self._std(delays),
@@ -105,14 +117,22 @@ class NetworkAnalyzer:
                 continue
 
             delivered = [r for r in vlan_packets if r["status"] == "delivered"]
-            delays = [float(r["delay_ms"]) for r in vlan_packets]
-            hops = [int(r["hops"]) for r in vlan_packets]
+            traversed = [r for r in vlan_packets if r["loss_reason"] != "acl_blocked"]
+            delays = [float(r["effective_delay_ms"]) for r in traversed]
+            hops = [int(r["effective_hops"]) for r in traversed]
+            acl_blocked = sum(1 for r in vlan_packets if r["loss_reason"] == "acl_blocked")
+            dropped_ttl = sum(1 for r in vlan_packets if r["loss_reason"] == "ttl_exceeded")
+            dropped_loss = sum(1 for r in vlan_packets if r["loss_reason"] in ("link_loss", "timeout", "other"))
             vlan_stats.append(
                 {
                     "vlan": vlan,
                     "packets_total": len(vlan_packets),
                     "packets_delivered": len(delivered),
-                    "packets_lost": len(vlan_packets) - len(delivered),
+                    "dropped_packets": sum(1 for r in vlan_packets if r["status"] != "delivered"),
+                    "dropped_loss": dropped_loss,
+                    "dropped_ttl": dropped_ttl,
+                    "acl_blocked": acl_blocked,
+                    "packets_lost": dropped_loss + dropped_ttl,
                     "delivery_rate": round((len(delivered) / len(vlan_packets)) * 100, 2),
                     "avg_delay_ms": self._mean(delays),
                     "avg_hops": self._mean(hops),
@@ -135,7 +155,8 @@ class NetworkAnalyzer:
                 continue
 
             delivered = [r for r in device_packets if r["status"] == "delivered"]
-            delays = [float(r["delay_ms"]) for r in device_packets]
+            traversed = [r for r in device_packets if r["loss_reason"] != "acl_blocked"]
+            delays = [float(r["effective_delay_ms"]) for r in traversed]
             destination_counts = defaultdict(int)
             for r in device_packets:
                 destination_counts[r["dst_name"]] += 1
@@ -151,6 +172,7 @@ class NetworkAnalyzer:
                     "vlan": device_packets[0]["src_vlan"] if device_packets else None,
                     "packets_sent": len(device_packets),
                     "packets_delivered": len(delivered),
+                    "dropped_packets": sum(1 for r in device_packets if r["status"] != "delivered"),
                     "delivery_rate": round((len(delivered) / len(device_packets)) * 100, 2),
                     "avg_delay_ms": self._mean(delays),
                     "primary_destinations": ", ".join(primary_destinations),
@@ -170,14 +192,21 @@ class NetworkAnalyzer:
                 continue
 
             delivered = [r for r in dest_packets if r["status"] == "delivered"]
-            delays = [float(r["delay_ms"]) for r in dest_packets]
+            traversed = [r for r in dest_packets if r["loss_reason"] != "acl_blocked"]
+            delays = [float(r["effective_delay_ms"]) for r in traversed]
+            dropped_ttl = sum(1 for r in dest_packets if r["loss_reason"] == "ttl_exceeded")
+            dropped_loss = sum(1 for r in dest_packets if r["loss_reason"] in ("link_loss", "timeout", "other"))
             traffic_stats[dest] = {
                 "packets": len(dest_packets),
                 "delivered": len(delivered),
-                "dropped": len(dest_packets) - len(delivered),
+                "dropped_packets": sum(1 for r in dest_packets if r["status"] != "delivered"),
+                "dropped_loss": dropped_loss,
+                "dropped_ttl": dropped_ttl,
+                "acl_blocked": sum(1 for r in dest_packets if r["loss_reason"] == "acl_blocked"),
+                "dropped": dropped_loss + dropped_ttl,
                 "delivery_rate": round((len(delivered) / len(dest_packets)) * 100, 2),
                 "avg_delay_ms": self._mean(delays),
-                "avg_hops": self._mean([int(r["hops"]) for r in dest_packets]),
+                "avg_hops": self._mean([int(r["effective_hops"]) for r in traversed]),
                 "percentage": round((len(dest_packets) / len(self.records)) * 100, 2),
             }
 
@@ -189,11 +218,9 @@ class NetworkAnalyzer:
 
         loss_breakdown = {
             "delivered": sum(1 for r in self.records if r["status"] == "delivered"),
-            "link_loss": sum(1 for r in self.records if r["loss_reason"] == "link_loss"),
-            "ttl_exceeded": sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded"),
+            "dropped_loss": sum(1 for r in self.records if r["loss_reason"] not in ("none", "ttl_exceeded", "acl_blocked") and r["status"] != "delivered"),
+            "dropped_ttl": sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded"),
             "acl_blocked": sum(1 for r in self.records if r["loss_reason"] == "acl_blocked"),
-            "timeout": sum(1 for r in self.records if r["loss_reason"] == "timeout"),
-            "other": sum(1 for r in self.records if r["loss_reason"] == "other"),
         }
 
         total = sum(loss_breakdown.values())
@@ -210,7 +237,7 @@ class NetworkAnalyzer:
 
         counts = defaultdict(int)
         for r in self.records:
-            counts[int(r["hops"])] += 1
+            counts[int(r["effective_hops"])] += 1
         return dict(sorted(counts.items()))
 
     def get_delay_distribution(self) -> Dict[int, Any]:
@@ -231,7 +258,7 @@ class NetworkAnalyzer:
             vlan_packets = self._records_for_vlan(vlan)
             if not vlan_packets:
                 continue
-            delays = [float(r["delay_ms"]) for r in vlan_packets]
+            delays = [float(r["effective_delay_ms"]) for r in vlan_packets]
             delay_dist[vlan] = {
                 "min": round(min(delays), 2) if delays else 0,
                 "q1": self._quantile(delays, 0.25),
@@ -283,6 +310,9 @@ class NetworkAnalyzer:
             "total_packets": 0,
             "delivered_packets": 0,
             "dropped_packets": 0,
+            "dropped_loss_packets": 0,
+            "dropped_ttl_packets": 0,
+            "acl_blocked_packets": 0,
             "delivery_rate": 0,
             "avg_delay_ms": 0,
             "std_delay_ms": 0,

@@ -136,7 +136,7 @@ def create_packet_from_network(net: Any, mode: str) -> list[PacketRecord]:
             PacketRecord(
                 src_name=f"Client_{(delivered_count + dropped_loss_count + i) % 100}",
                 src_ip=f"10.1.{(delivered_count + dropped_loss_count + i) % 256}.0",
-                dst_name="Internet",
+                dst_name="INTERNET",
                 dst_ip="8.8.8.8",
                 src_type="pc",
                 dst_type="server",
@@ -152,12 +152,13 @@ def create_packet_from_network(net: Any, mode: str) -> list[PacketRecord]:
         )
 
     for i in range(acl_blocked_count):
+        dst_name = "INTERNET" if mode == "exam" and i % 2 else "CLOUD_SERVER"
         packets.append(
             PacketRecord(
                 src_name=f"Client_{(delivered_count + dropped_loss_count + dropped_ttl_count + i) % 100}",
                 src_ip=f"10.1.{(delivered_count + dropped_loss_count + dropped_ttl_count + i) % 256}.0",
-                dst_name=["CLOUD_SERVER", "INTERNET"][i % 2] if mode == "exam" else "CLOUD_SERVER",
-                dst_ip="10.128.0.30",
+                dst_name=dst_name,
+                dst_ip="8.8.8.8" if dst_name == "INTERNET" else "10.128.0.30",
                 src_type="pc",
                 dst_type="server",
                 src_vlan=101 + ((delivered_count + dropped_loss_count + dropped_ttl_count + i) % 8),
@@ -168,6 +169,7 @@ def create_packet_from_network(net: Any, mode: str) -> list[PacketRecord]:
                 loss_reason="acl_blocked",
                 delay_ms=0.0,
                 hops=0,
+                acl_blocked_reason="ACL policy denied route",
             )
         )
 

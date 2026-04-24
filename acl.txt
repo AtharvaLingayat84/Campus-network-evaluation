@@ -1,0 +1,19 @@
+ip access-list extended EXAM_MODE
+ permit ip any host 10.128.0.10   ← EXAM server only
+ permit ip any host 10.128.0.20   ← EMAIL server only
+ deny ip any any                  ← block everything else
+
+FOR ACL
+conf t
+interface GigabitEthernet0/1
+ ip access-group EXAM_MODE in
+end
+
+
+TO REMOVE
+conf t
+interface GigabitEthernet0/1
+no ip access-group EXAM_MODE in
+end
+
+

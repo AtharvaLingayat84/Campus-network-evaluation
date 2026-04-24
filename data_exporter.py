@@ -24,6 +24,7 @@ class DataExporter:
         self.records = [self._packet_to_record(pkt) for pkt in packets]
 
     def _packet_to_record(self, pkt: Any) -> Dict[str, Any]:
+        loss_reason = getattr(pkt, "loss_reason", "none")
         return {
             "timestamp": getattr(pkt, "timestamp", 0),
             "src_ip": getattr(pkt, "src_ip", ""),
@@ -38,7 +39,11 @@ class DataExporter:
             "delay_ms": getattr(pkt, "delay_ms", 0),
             "hops": getattr(pkt, "hops", 0),
             "status": getattr(pkt, "status", "unknown"),
-            "loss_reason": getattr(pkt, "loss_reason", "none"),
+            "loss_reason": loss_reason,
+            "acl_blocked_reason": getattr(pkt, "acl_blocked_reason", ""),
+            "asa_fw_penalty_ms": getattr(pkt, "asa_fw_penalty_ms", 0.0),
+            "effective_delay_ms": float(getattr(pkt, "delay_ms", 0)) + float(getattr(pkt, "asa_fw_penalty_ms", 0.0)),
+            "effective_hops": int(getattr(pkt, "hops", 0)) + (1 if "ASA_FW" in getattr(pkt, "path", []) else 0),
         }
 
     def to_csv(self, filename: Optional[str] = None, mode: str = "normal") -> str:
@@ -70,11 +75,14 @@ class DataExporter:
                 "total_packets": len(self.records),
                 "delivered_packets": sum(1 for r in self.records if r["status"] == "delivered"),
                 "dropped_packets": sum(1 for r in self.records if r["status"] != "delivered"),
+                "dropped_loss_packets": sum(1 for r in self.records if r["loss_reason"] not in ("none", "ttl_exceeded", "acl_blocked") and r["status"] != "delivered"),
+                "dropped_ttl_packets": sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded"),
+                "acl_blocked_packets": sum(1 for r in self.records if r["loss_reason"] == "acl_blocked"),
                 "delivery_rate": self._calc_delivery_rate(),
-                "avg_delay_ms": self._safe_mean([r["delay_ms"] for r in self.records]),
-                "avg_hops": self._safe_mean([r["hops"] for r in self.records]),
-                "max_delay_ms": max([r["delay_ms"] for r in self.records], default=0),
-                "min_delay_ms": min([r["delay_ms"] for r in self.records], default=0),
+                "avg_delay_ms": self._safe_mean([r["effective_delay_ms"] for r in self.records if r["loss_reason"] != "acl_blocked"]),
+                "avg_hops": self._safe_mean([r["effective_hops"] for r in self.records if r["loss_reason"] != "acl_blocked"]),
+                "max_delay_ms": max([r["effective_delay_ms"] for r in self.records if r["loss_reason"] != "acl_blocked"], default=0),
+                "min_delay_ms": min([r["effective_delay_ms"] for r in self.records if r["loss_reason"] != "acl_blocked"], default=0),
             },
             "per_vlan": self._calc_vlan_stats(),
             "per_device": self._calc_device_stats(),
@@ -120,12 +128,19 @@ class DataExporter:
             if not vlan_packets:
                 continue
             delivered = sum(1 for r in vlan_packets if r["status"] == "delivered")
-            delays = [r["delay_ms"] for r in vlan_packets]
-            hops = [r["hops"] for r in vlan_packets]
+            traversed = [r for r in vlan_packets if r["loss_reason"] != "acl_blocked"]
+            delays = [r["effective_delay_ms"] for r in traversed]
+            hops = [r["effective_hops"] for r in traversed]
+            dropped_loss = sum(1 for r in vlan_packets if r["loss_reason"] not in ("none", "ttl_exceeded", "acl_blocked") and r["status"] != "delivered")
+            dropped_ttl = sum(1 for r in vlan_packets if r["loss_reason"] == "ttl_exceeded")
             vlan_stats[vlan] = {
                 "packets_total": len(vlan_packets),
                 "packets_delivered": delivered,
-                "packets_lost": len(vlan_packets) - delivered,
+                "dropped_packets": sum(1 for r in vlan_packets if r["status"] != "delivered"),
+                "dropped_loss": dropped_loss,
+                "dropped_ttl": dropped_ttl,
+                "acl_blocked": sum(1 for r in vlan_packets if r["loss_reason"] == "acl_blocked"),
+                "packets_lost": dropped_loss + dropped_ttl,
                 "delivery_rate": round((delivered / len(vlan_packets)) * 100, 2),
                 "avg_delay_ms": self._safe_mean(delays),
                 "avg_hops": self._safe_mean(hops),
@@ -143,7 +158,8 @@ class DataExporter:
             if not device_packets:
                 continue
             delivered = sum(1 for r in device_packets if r["status"] == "delivered")
-            delays = [r["delay_ms"] for r in device_packets]
+            traversed = [r for r in device_packets if r["loss_reason"] != "acl_blocked"]
+            delays = [r["effective_delay_ms"] for r in traversed]
             dst_counts: Dict[str, int] = {}
             for r in device_packets:
                 dst_counts[r["dst_name"]] = dst_counts.get(r["dst_name"], 0) + 1
@@ -153,6 +169,7 @@ class DataExporter:
                 "vlan": device_packets[0]["src_vlan"],
                 "packets_sent": len(device_packets),
                 "packets_delivered": delivered,
+                "dropped_packets": sum(1 for r in device_packets if r["status"] != "delivered"),
                 "delivery_rate": round((delivered / len(device_packets)) * 100, 2),
                 "avg_delay_ms": self._safe_mean(delays),
                 "primary_destinations": primary_destinations,
@@ -169,14 +186,21 @@ class DataExporter:
             if not dest_packets:
                 continue
             delivered = sum(1 for r in dest_packets if r["status"] == "delivered")
-            delays = [r["delay_ms"] for r in dest_packets]
+            traversed = [r for r in dest_packets if r["loss_reason"] != "acl_blocked"]
+            delays = [r["effective_delay_ms"] for r in traversed]
+            dropped_loss = sum(1 for r in dest_packets if r["loss_reason"] not in ("none", "ttl_exceeded", "acl_blocked") and r["status"] != "delivered")
+            dropped_ttl = sum(1 for r in dest_packets if r["loss_reason"] == "ttl_exceeded")
             traffic_stats[dest] = {
                 "packets": len(dest_packets),
                 "delivered": delivered,
-                "dropped": len(dest_packets) - delivered,
+                "dropped_packets": sum(1 for r in dest_packets if r["status"] != "delivered"),
+                "dropped_loss": dropped_loss,
+                "dropped_ttl": dropped_ttl,
+                "acl_blocked": sum(1 for r in dest_packets if r["loss_reason"] == "acl_blocked"),
+                "dropped": dropped_loss + dropped_ttl,
                 "delivery_rate": round((delivered / len(dest_packets)) * 100, 2),
                 "avg_delay_ms": self._safe_mean(delays),
-                "avg_hops": self._safe_mean([r["hops"] for r in dest_packets]),
+                "avg_hops": self._safe_mean([r["effective_hops"] for r in traversed]),
                 "percentage": round((len(dest_packets) / len(self.records)) * 100, 2),
             }
 
@@ -185,11 +209,9 @@ class DataExporter:
     def _calc_loss_breakdown(self) -> Dict[str, Any]:
         loss_breakdown = {
             "delivered": sum(1 for r in self.records if r["status"] == "delivered"),
-            "link_loss": sum(1 for r in self.records if r["loss_reason"] == "link_loss"),
-            "ttl_exceeded": sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded"),
+            "dropped_loss": sum(1 for r in self.records if r["loss_reason"] not in ("none", "ttl_exceeded", "acl_blocked") and r["status"] != "delivered"),
+            "dropped_ttl": sum(1 for r in self.records if r["loss_reason"] == "ttl_exceeded"),
             "acl_blocked": sum(1 for r in self.records if r["loss_reason"] == "acl_blocked"),
-            "timeout": sum(1 for r in self.records if r["loss_reason"] == "timeout"),
-            "other": sum(1 for r in self.records if r["loss_reason"] == "other"),
         }
         total = sum(loss_breakdown.values())
         if total:

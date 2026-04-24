@@ -35,10 +35,12 @@ class PacketRecord:
     # Routing
     hops: int = 0
     path: list = field(default_factory=list)
+    asa_fw_penalty_ms: float = 0.0
 
     # Status tracking
     status: str = "pending"  # pending, delivered, dropped
     loss_reason: str = "none"  # link_loss, ttl_exceeded, acl_blocked, timeout, none
+    acl_blocked_reason: str = ""
 
     def __repr__(self):
         return f"PacketRecord({self.src_name}->{self.dst_name} {self.status})"
@@ -96,6 +98,7 @@ class PacketCollector:
         pkt_record.hops = hops
         pkt_record.path = path
         pkt_record.loss_reason = "none"
+        pkt_record.acl_blocked_reason = ""
 
     def record_dropped(
         self,
@@ -103,6 +106,9 @@ class PacketCollector:
         reason: str,
         delay_ms: float = 0.0,
         hops: int = 0,
+        path: Optional[list] = None,
+        acl_blocked_reason: str = "",
+        asa_fw_penalty_ms: float = 0.0,
     ):
         """
         Record packet drop.
@@ -117,6 +123,10 @@ class PacketCollector:
         pkt_record.loss_reason = reason
         pkt_record.delay_ms = delay_ms
         pkt_record.hops = hops
+        if path is not None:
+            pkt_record.path = path
+        pkt_record.acl_blocked_reason = acl_blocked_reason if reason == "acl_blocked" else ""
+        pkt_record.asa_fw_penalty_ms = asa_fw_penalty_ms
 
     def get_packets(self):
         """Return all collected packets."""
@@ -129,24 +139,43 @@ class PacketCollector:
 
         total = len(self.packets)
         delivered = len([p for p in self.packets if p.status == "delivered"])
-        dropped = total - delivered
+        acl_blocked = len([p for p in self.packets if p.loss_reason == "acl_blocked"])
+        dropped_loss = len([p for p in self.packets if p.loss_reason == "link_loss"])
+        dropped_ttl = len([p for p in self.packets if p.loss_reason == "ttl_exceeded"])
+        dropped_packets = len([p for p in self.packets if p.status != "delivered"])
+        other_dropped = len(
+            [
+                p
+                for p in self.packets
+                if p.status != "delivered"
+                and p.loss_reason not in ("link_loss", "ttl_exceeded", "acl_blocked")
+            ]
+        )
 
         delivered_packets = [p for p in self.packets if p.status == "delivered"]
+        traversed_packets = [p for p in self.packets if p.loss_reason != "acl_blocked"]
         avg_delay = (
-            sum(p.delay_ms for p in delivered_packets) / len(delivered_packets)
-            if delivered_packets
+            sum(p.delay_ms + getattr(p, "asa_fw_penalty_ms", 0.0) for p in traversed_packets)
+            / len(traversed_packets)
+            if traversed_packets
             else 0
         )
         avg_hops = (
-            sum(p.hops for p in delivered_packets) / len(delivered_packets)
-            if delivered_packets
+            sum(p.hops + (1 if "ASA_FW" in getattr(p, "path", []) else 0) for p in traversed_packets)
+            / len(traversed_packets)
+            if traversed_packets
             else 0
         )
 
         return {
             "total": total,
             "delivered": delivered,
-            "dropped": dropped,
+            "dropped_loss": dropped_loss,
+            "dropped_ttl": dropped_ttl,
+            "acl_blocked": acl_blocked,
+            "other_dropped": other_dropped,
+            "dropped_packets": dropped_packets,
+            "dropped": dropped_packets,
             "delivery_rate": round((delivered / total * 100), 2) if total > 0 else 0,
             "avg_delay_ms": round(avg_delay, 2),
             "avg_hops": round(avg_hops, 2),

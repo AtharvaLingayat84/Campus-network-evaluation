@@ -28,15 +28,17 @@ class EnhancedVisualizations:
         vlan_stats = sorted(vlan_stats, key=lambda x: x["vlan"])
         vlans = [str(v["vlan"]) for v in vlan_stats]
         delivered = [v["packets_delivered"] for v in vlan_stats]
-        lost = [v["packets_lost"] for v in vlan_stats]
+        lost = [v.get("dropped_loss", 0) + v.get("dropped_ttl", 0) for v in vlan_stats]
+        acl_blocked = [v.get("acl_blocked", 0) for v in vlan_stats]
 
         x = list(range(len(vlans)))
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.bar(x, delivered, 0.6, label="Delivered", color="#2ecc71", alpha=0.8)
-        ax.bar(x, lost, 0.6, bottom=delivered, label="Lost", color="#e74c3c", alpha=0.8)
+        ax.bar(x, lost, 0.6, bottom=delivered, label="Dropped (loss + TTL)", color="#e74c3c", alpha=0.8)
+        ax.bar(x, acl_blocked, 0.6, bottom=[d + l for d, l in zip(delivered, lost)], label="ACL Blocked (policy action)", color="#8e44ad", alpha=0.8)
         ax.set_xlabel("VLAN", fontsize=12, fontweight="bold")
         ax.set_ylabel("Packet Count", fontsize=12, fontweight="bold")
-        ax.set_title(f"Per-VLAN Traffic Volume ({mode.upper()} Mode)", fontsize=14, fontweight="bold")
+        ax.set_title(f"Per-VLAN Packet Outcomes ({mode.upper()} Mode)", fontsize=14, fontweight="bold")
         ax.set_xticks(x)
         ax.set_xticklabels(vlans, rotation=45)
         ax.legend()
@@ -62,9 +64,9 @@ class EnhancedVisualizations:
         for bar, count in zip(bars, counts):
             ax.text(bar.get_x() + bar.get_width() / 2.0, bar.get_height(), f"{int(count)}", ha="center", va="bottom", fontweight="bold")
 
-        ax.set_xlabel("Hop Count", fontsize=12, fontweight="bold")
+        ax.set_xlabel("Routed Path Hop Count", fontsize=12, fontweight="bold")
         ax.set_ylabel("Packet Count", fontsize=12, fontweight="bold")
-        ax.set_title("Network Path Efficiency (Hop Count Distribution)", fontsize=14, fontweight="bold")
+        ax.set_title("Routed Path Efficiency (Hop Count Distribution)", fontsize=14, fontweight="bold")
         ax.grid(axis="y", alpha=0.3)
         plt.xticks(hops)
         plt.tight_layout()

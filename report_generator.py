@@ -134,10 +134,13 @@ OVERALL STATISTICS:
         report += f"""
   Total Packets:        {overall.get("total_packets", 0):>10}
   Delivered:            {overall.get("delivered_packets", 0):>10} ({overall.get("delivery_rate", 0):>5.2f}%)
-  Dropped:              {overall.get("dropped_packets", 0):>10}
+  Dropped (loss + TTL):  {overall.get("dropped_packets", 0) - overall.get("acl_blocked_packets", 0):>10}
+  ACL Blocked (policy action): {overall.get("acl_blocked_packets", 0):>10}
   
   Avg Delay:            {overall.get("avg_delay_ms", 0):>10.2f} ms
   Avg Hop Count:        {overall.get("avg_hops", 0):>10.2f}
+
+  Note: Delay and hop metrics are based on routed paths only; ACL-blocked packets are excluded.
 
 """
 
@@ -157,6 +160,8 @@ PER-VLAN PERFORMANCE:
                 delay = row["avg_delay_ms"]
                 hops = row["avg_hops"]
                 report += f"{vlan:<8} {packets:<12} {delivery:<11.2f}% {delay:<11.2f} ms {hops:<12.2f}\n"
+                if row.get("acl_blocked", 0):
+                    report += f"{'':<8} {'ACL blocked':<12} {row.get('acl_blocked', 0):<12} {'':<12} {'':<12}\n"
 
         # Add traffic type statistics
         if traffic_stats:
@@ -186,11 +191,9 @@ PACKET LOSS BREAKDOWN:
 
             reasons = {
                 "delivered": "Delivered",
-                "link_loss": "Link Loss (Congestion)",
-                "ttl_exceeded": "TTL Exceeded",
-                "acl_blocked": "ACL Blocked",
-                "timeout": "Timeout",
-                "other": "Other",
+                "dropped_loss": "Dropped Loss (link/timeout/other)",
+                "dropped_ttl": "Dropped TTL",
+                "acl_blocked": "ACL Blocked (policy action)",
             }
 
             for key, label in reasons.items():
@@ -214,12 +217,15 @@ OBSERVATIONS
   {overall.get("std_delay_ms", 0):.2f} ms suggests {"consistent" if overall.get("std_delay_ms", 0) < 5 else "variable"} network conditions.
 
 • Path Efficiency:
-  Average hop count of {overall.get("avg_hops", 0):.2f} shows routing is
+  Average hop count of {overall.get("avg_hops", 0):.2f} on routed paths shows routing is
   {"efficient" if overall.get("avg_hops", 0) < 5 else "suboptimal for current topology"}.
 
 • Primary Loss Factor:
-  {"Link congestion" if loss_breakdown.get("link_loss", 0) > loss_breakdown.get("ttl_exceeded", 0) else "TTL exhaustion" if loss_breakdown.get("ttl_exceeded", 0) > 0 else "No significant loss"} 
+  {"Link congestion" if loss_breakdown.get("dropped_loss", 0) > loss_breakdown.get("dropped_ttl", 0) else "TTL exhaustion" if loss_breakdown.get("dropped_ttl", 0) > 0 else "No significant loss"} 
   is the primary packet loss mechanism.
+
+• ACL Impact:
+  {loss_breakdown.get("acl_blocked", 0)} packets were ACL blocked as a policy action and are reported separately from loss.
 
 {"=" * 80}
 RECOMMENDATIONS

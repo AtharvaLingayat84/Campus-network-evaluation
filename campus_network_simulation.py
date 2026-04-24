@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
 import ipaddress
+import math
 import logging
 import os
 from dataclasses import dataclass, field
@@ -330,6 +331,8 @@ class CampusNetwork:
     # ================================================================
     def get_ip(self, node_name: str) -> Optional[str]:
         """Return the IP address assigned to a node."""
+        if node_name == "INTERNET":
+            return "8.8.8.8"
         if node_name in self.G.nodes:
             return self.G.nodes[node_name].get("ip")
         return None
@@ -348,9 +351,9 @@ class CampusNetwork:
             logger.info(f"  All other external/server traffic BLOCKED")
         logger.info(f"{'='*60}")
 
-    def _acl_check(self, pkt: Packet) -> bool:
+    def _acl_check(self, pkt: Packet) -> tuple[bool, str]:
         """
-        Returns True if packet is ALLOWED, False if BLOCKED by ACL.
+        Returns (allowed, reason) for ACL evaluation.
 
         Exam mode policy:
           - Client-to-client traffic within same VLAN: ALLOWED
@@ -358,7 +361,7 @@ class CampusNetwork:
           - Traffic to Cloud Server, Internet, anything else: DENIED
         """
         if not self.exam_mode:
-            return True  # normal mode - allow everything
+            return True, "normal-mode"
 
         dst_ip = pkt.dst_ip
 
@@ -366,14 +369,14 @@ class CampusNetwork:
         src_vlan = self.G.nodes[pkt.src_name].get("vlan")
         dst_vlan = self.G.nodes[pkt.dst_name].get("vlan")
         if src_vlan is not None and dst_vlan is not None and src_vlan == dst_vlan:
-            return True
+            return True, "same-vlan"
 
         # Allow Exam and Email servers
         if dst_ip in self.EXAM_ALLOWED_IPS:
-            return True
+            return True, "exam-or-email-server"
 
         # Block everything else (Cloud Server, Internet, cross-VLAN)
-        return False
+        return False, "blocked-by-exam-acl"
 
     # ================================================================
     #  PACKET FORWARDING SIMULATION
@@ -384,6 +387,42 @@ class CampusNetwork:
             return nx.shortest_path(self.G, src, dst)
         except nx.NetworkXNoPath:
             return None
+
+    def _decay_edge_load(self, edge: dict) -> None:
+        """Decay edge load over simulated time to prevent buildup."""
+        now = float(self.env.now)
+        last = float(edge.get("last_decay_time", now))
+        dt = max(0.0, now - last)
+
+        if dt > 0:
+            decay_rate = 0.15
+            edge["load"] = float(edge.get("load", 0.0)) * math.exp(-decay_rate * dt)
+
+        edge["last_decay_time"] = now
+
+    def _build_routed_path(self, src_name: str, dst_name: str) -> Optional[list[str]]:
+        """Compute a path that enforces VLAN routing rules."""
+        if src_name == dst_name:
+            return [src_name]
+
+        src_vlan = self.G.nodes[src_name].get("vlan")
+        dst_vlan = self.G.nodes[dst_name].get("vlan")
+
+        # Infrastructure nodes or same-VLAN traffic use the shortest path.
+        if src_vlan is None or dst_vlan is None or src_vlan == dst_vlan:
+            return self._find_path(src_name, dst_name)
+
+        # Cross-VLAN traffic must traverse CORE_RTR.
+        if "CORE_RTR" not in self.G:
+            return None
+
+        path_to_router = self._find_path(src_name, "CORE_RTR")
+        path_from_router = self._find_path("CORE_RTR", dst_name)
+        if not path_to_router or not path_from_router:
+            return None
+
+        # Avoid duplicating CORE_RTR in the stitched path.
+        return path_to_router[:-1] + path_from_router
 
     def _route_through_router(self, pkt: Packet) -> bool:
         """
@@ -396,8 +435,13 @@ class CampusNetwork:
         if src_vlan is None or dst_vlan is None:
             return True  # infrastructure nodes
         if src_vlan != dst_vlan:
-            logger.debug(f"  Router-on-a-stick: VLAN {src_vlan} -> VLAN {dst_vlan}")
-            return True
+            path_to_router = self._find_path(pkt.src_name, "CORE_RTR")
+            path_from_router = self._find_path("CORE_RTR", pkt.dst_name)
+            if path_to_router and path_from_router:
+                logger.debug(f"  Router-on-a-stick: VLAN {src_vlan} -> VLAN {dst_vlan} via CORE_RTR")
+                return True
+            logger.warning(f"VLAN ISOLATION: blocked cross-VLAN route {pkt.src_name}({src_vlan}) -> {pkt.dst_name}({dst_vlan})")
+            return False
         return True
 
     def simulate_packet_flow(self, src_name: str, dst_name: str):
@@ -429,17 +473,18 @@ class CampusNetwork:
         logger.debug(f"{src_name} -> {dst_name}  sending packet {pkt}")
 
         # --- ACL check ---
-        if not self._acl_check(pkt):
+        allowed, acl_reason = self._acl_check(pkt)
+        if not allowed:
             self.stats["acl_blocked"] += 1
-            logger.debug(f"ACL: DENIED (exam mode)  {src_ip} -> {dst_ip}")
+            logger.warning(f"ACL BLOCKED: {src_name}({src_ip}) -> {dst_name}({dst_ip}) reason={acl_reason}")
             return
-        logger.debug(f"ACL: ALLOWED  {src_ip} -> {dst_ip}")
+        logger.debug(f"ACL: ALLOWED  {src_ip} -> {dst_ip} reason={acl_reason}")
 
         # --- Path computation ---
-        path = self._find_path(src_name, dst_name)
+        path = self._build_routed_path(src_name, dst_name)
         if path is None:
             self.stats["dropped_ttl"] += 1
-            logger.warning(f"ROUTE: No path  {src_name} -> {dst_name}")
+            logger.warning(f"ROUTE: No valid path  {src_name} -> {dst_name}")
             return
 
         hops = len(path) - 1
@@ -449,13 +494,18 @@ class CampusNetwork:
             return
 
         # --- Inter-VLAN routing check ---
-        self._route_through_router(pkt)
+        if not self._route_through_router(pkt):
+            self.stats["dropped_ttl"] += 1
+            return
 
         # --- Hop-by-hop forwarding ---
         total_delay = 0.0
         for i in range(len(path) - 1):
             u, v = path[i], path[i + 1]
             edge = self.G[u][v]
+
+            # Decay congestion before applying new traffic.
+            self._decay_edge_load(edge)
 
             pkt.ttl -= 1
             if pkt.ttl <= 0:
@@ -466,7 +516,7 @@ class CampusNetwork:
             # Congestion factor
             bw   = max(1.0, float(edge.get("bandwidth", 100)))
             load = float(edge.get("load", 0.0))
-            congestion = max(1.0, load / bw)
+            congestion = max(1.0, 1.0 + (load / bw))
 
             # Random loss
             drop_prob = min(0.30, PACKET_LOSS_RATE * congestion)
@@ -478,10 +528,18 @@ class CampusNetwork:
             # Delay calculation
             link_delay = edge.get("base_delay", 1.0) * congestion
             link_delay += random.uniform(0.1, 0.5)
+
+            # Firewall adds processing delay without topology changes.
+            if u == "ASA_FW" or v == "ASA_FW":
+                firewall_delay = random.uniform(1.0, 3.0)
+                link_delay += firewall_delay
+                logger.debug(f"  ASA processing delay added: {firewall_delay:.2f}ms")
+
             total_delay += link_delay
 
             # Update load
-            edge["load"] = load + random.uniform(5, 20)
+            edge["load"] = min(load + random.uniform(5, 20), bw * 10)
+            edge["last_decay_time"] = float(self.env.now)
 
             # Log forwarding
             node_type = self.G.nodes[v].get("type", "unknown")
