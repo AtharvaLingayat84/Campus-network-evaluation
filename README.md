@@ -69,7 +69,6 @@ All outputs saved to `./output/`:
 #### Visualizations
 - `campus_topology.png` - Network topology overview
 - `path_efficiency.png` - Routed path hop count histogram
-- `communication_heatmap.png` - Device pair traffic matrix
 
 #### Data Exports
 - `simulation_results_normal.csv` - Packet-level data (normal)

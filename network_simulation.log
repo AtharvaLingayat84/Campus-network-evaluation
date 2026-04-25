@@ -4339,7 +4339,7 @@ DHCP: PHONE_CAMPUS2_F4 -> 10.2.204.31 (VLAN 204)
 ============================================================
 ============================================================
   EXAM MODE ENABLED
-  Allowed destinations: {'10.128.0.10', '10.128.0.20'}
+  Allowed destinations: {'10.128.0.20', '10.128.0.10'}
   All other external/server traffic BLOCKED
 ============================================================
 Traffic generator started: 120 clients, 3 servers

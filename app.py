@@ -215,7 +215,7 @@ def run_complete_simulation(config_file: str = "config.yaml") -> Tuple[Dict[str,
 
     visualizer = EnhancedVisualizations(analyzer_normal, output_dir, dpi=dpi)
     print("Generating Normal Mode Visualizations...")
-    visualizer.plot_path_efficiency(mode="normal")
+    visualizer.plot_path_efficiency()
     render_clean_topology(save_path=os.path.join(output_dir, "campus_topology.png"), dpi=dpi)
 
     output_cfg = config.get("output", {})
@@ -261,8 +261,6 @@ def run_complete_simulation(config_file: str = "config.yaml") -> Tuple[Dict[str,
 
     visualizer_exam = EnhancedVisualizations(analyzer_exam, output_dir, dpi=dpi)
     print("Generating Exam Mode Visualizations...")
-    visualizer_exam.plot_path_efficiency(mode="exam")
-
     if any(
         output_cfg.get(flag, False)
         for flag in ("export_csv", "export_json", "export_pickle")
