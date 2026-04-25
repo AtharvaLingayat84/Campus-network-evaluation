@@ -68,8 +68,6 @@ All outputs saved to `./output/`:
 
 #### Visualizations
 - `campus_topology.png` - Network topology overview
-- `vlan_traffic_normal.png` - Per-VLAN packet volume
-- `vlan_traffic_exam.png` - Per-VLAN packet volume (exam)
 - `path_efficiency.png` - Routed path hop count histogram
 - `communication_heatmap.png` - Device pair traffic matrix
 

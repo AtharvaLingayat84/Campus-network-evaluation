@@ -4,7 +4,7 @@ CAMPUS NETWORK SIMULATION EVALUATION REPORT
 ================================================================================
 
 Mode: NORMAL MODE
-Generated: 2026-04-24 21:54:14
+Generated: 2026-04-25 11:45:06
 
 ================================================================================
 EXECUTIVE SUMMARY
@@ -23,12 +23,12 @@ KEY FINDINGS
   Dropped: 69
 
 • Network Latency
-  Average Delay: 7.06 ms
-  Range: 1.06 - 13.92 ms
-  Std Dev: 2.28 ms
+  Average Delay: 7.72 ms
+  Range: 2.18 - 13.92 ms
+  Std Dev: 1.71 ms
 
 • Path Efficiency
-  Average Hop Count: 6.36
+  Average Hop Count: 6.65
   Range: 2 - 10 hops
 
 ================================================================================
@@ -42,8 +42,8 @@ OVERALL STATISTICS:
   Dropped (loss + TTL):          69
   ACL Blocked (policy action):          0
   
-  Avg Delay:                  7.06 ms
-  Avg Hop Count:              6.36
+  Avg Delay:                  7.72 ms
+  Avg Hop Count:              6.65
 
   Note: Delay and hop metrics are based on routed paths only; ACL-blocked packets are excluded.
 
@@ -52,15 +52,15 @@ PER-VLAN PERFORMANCE:
 ─────────────────────────────────────────────────────────────────────────────
 VLAN     Packets      Delivery%    Avg Delay    Avg Hops    
 ───────────────────────────────────────────────────────────────────────────────
-101      60           85.00      % 6.95        ms 6.33        
-102      60           85.00      % 7.27        ms 6.53        
-103      60           85.00      % 6.90        ms 6.28        
-104      59           86.44      % 6.95        ms 6.51        
-105      59           86.44      % 6.99        ms 6.19        
-106      59           86.44      % 7.32        ms 6.42        
-107      59           84.75      % 6.96        ms 6.22        
-108      59           84.75      % 7.15        ms 6.37        
-128      475          85.47      % 7.06        ms 6.36        
+101      60           85.00      % 7.52        ms 6.69        
+102      60           85.00      % 7.87        ms 6.80        
+103      60           85.00      % 7.61        ms 6.55        
+104      59           86.44      % 7.60        ms 6.80        
+105      59           86.44      % 7.59        ms 6.45        
+106      59           86.44      % 7.98        ms 6.69        
+107      59           84.75      % 7.71        ms 6.52        
+108      59           84.75      % 7.85        ms 6.68        
+128      0            0.00       % 0.00        ms 0.00        
 
 
 TRAFFIC TYPE ANALYSIS:
@@ -91,11 +91,11 @@ OBSERVATIONS
   room for optimization.
 
 • Latency Profile:
-  Average packet delay of 7.06 ms with variation of
-  2.28 ms suggests consistent network conditions.
+  Average packet delay of 7.72 ms with variation of
+  1.71 ms suggests consistent network conditions.
 
 • Path Efficiency:
-  Average hop count of 6.36 on routed paths shows routing is
+  Average hop count of 6.65 on routed paths shows routing is
   suboptimal for current topology.
 
 • Primary Loss Factor:

@@ -493,11 +493,6 @@ class CampusNetwork:
             logger.warning(f"TTL EXCEEDED  {src_name} -> {dst_name}  hops={hops}")
             return
 
-        # --- Inter-VLAN routing check ---
-        if not self._route_through_router(pkt):
-            self.stats["dropped_ttl"] += 1
-            return
-
         # --- Hop-by-hop forwarding ---
         total_delay = 0.0
         for i in range(len(path) - 1):
